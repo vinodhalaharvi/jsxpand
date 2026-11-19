@@ -1,0 +1,2641 @@
+{
+ "files": 26,
+ "edges": {
+  "ROOT": {
+   "Card": 9,
+   "Dialog": 5,
+   "Form": 3,
+   "Table": 3,
+   "Label": 1,
+   "Select": 2,
+   "Tabs": 2,
+   "Input": 1,
+   "Button": 4,
+   "Badge": 1
+  },
+  "Card": {
+   "CardHeader": 11,
+   "CardContent": 10,
+   "CardFooter": 8
+  },
+  "CardHeader": {
+   "CardTitle": 11,
+   "CardDescription": 8,
+   "Badge": 1
+  },
+  "CardContent": {
+   "Avatar": 3,
+   "Badge": 1,
+   "Switch": 2,
+   "Label": 5,
+   "RevenueChart": 1,
+   "Input": 3
+  },
+  "Avatar": {
+   "AvatarFallback": 3,
+   "AvatarImage": 2
+  },
+  "Dialog": {
+   "DialogTrigger": 5,
+   "DialogContent": 5
+  },
+  "DialogTrigger": {
+   "Button": 5
+  },
+  "DialogContent": {
+   "DialogHeader": 5,
+   "DialogFooter": 5,
+   "Label": 3,
+   "Input": 4
+  },
+  "DialogHeader": {
+   "DialogTitle": 5,
+   "DialogDescription": 4
+  },
+  "DialogFooter": {
+   "Button": 7
+  },
+  "Form": {
+   "FormField": 7,
+   "Button": 3
+  },
+  "FormField": {
+   "FormItem": 7
+  },
+  "FormItem": {
+   "FormLabel": 7,
+   "FormControl": 7,
+   "FormMessage": 7,
+   "FormDescription": 1
+  },
+  "FormControl": {
+   "Input": 6,
+   "Textarea": 1
+  },
+  "CardFooter": {
+   "Button": 9
+  },
+  "Table": {
+   "TableCaption": 1,
+   "TableHeader": 3,
+   "TableBody": 3
+  },
+  "TableHeader": {
+   "TableRow": 3
+  },
+  "TableRow": {
+   "TableHead": 11,
+   "TableCell": 11
+  },
+  "TableBody": {
+   "TableRow": 3
+  },
+  "TableCell": {
+   "Badge": 2,
+   "Button": 1
+  },
+  "Select": {
+   "SelectTrigger": 2,
+   "SelectContent": 2
+  },
+  "SelectTrigger": {
+   "SelectValue": 2
+  },
+  "SelectContent": {
+   "SelectItem": 5
+  },
+  "Tabs": {
+   "TabsList": 2,
+   "TabsContent": 5
+  },
+  "TabsList": {
+   "TabsTrigger": 5
+  },
+  "TabsContent": {
+   "Overview": 1,
+   "Analytics": 1,
+   "Reports": 1,
+   "Card": 2
+  }
+ },
+ "comps": {
+  "Card": {
+   "count": 11,
+   "module": "@/components/ui/card",
+   "props": {
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"w-[350px]\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "ROOT": {
+     "CardHeader,CardContent": 3,
+     "CardHeader,CardFooter": 1,
+     "CardHeader,CardContent,CardFooter": 5
+    },
+    "TabsContent": {
+     "CardHeader,CardContent,CardFooter": 2
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "ROOT": 9,
+    "TabsContent": 2
+   },
+   "propsBy": {
+    "ROOT": {
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"w-[350px]\"": 1
+      }
+     }
+    },
+    "TabsContent": {}
+   },
+   "textBy": {
+    "ROOT": {},
+    "TabsContent": {}
+   },
+   "sigs": {
+    "ROOT": {
+     "{\"p\":[],\"t\":\"\"}": 8,
+     "{\"p\":[[\"className\",\"\\\"w-[350px]\\\"\"]],\"t\":\"\"}": 1
+    },
+    "TabsContent": {
+     "{\"p\":[],\"t\":\"\"}": 2
+    }
+   }
+  },
+  "CardHeader": {
+   "count": 11,
+   "module": "@/components/ui/card",
+   "props": {
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"pb-2\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Card": {
+     "CardTitle": 3,
+     "CardTitle,CardDescription": 7,
+     "CardTitle,CardDescription,Badge": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Card": 11
+   },
+   "propsBy": {
+    "Card": {
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"pb-2\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Card": {}
+   },
+   "sigs": {
+    "Card": {
+     "{\"p\":[],\"t\":\"\"}": 10,
+     "{\"p\":[[\"className\",\"\\\"pb-2\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "CardTitle": {
+   "count": 11,
+   "module": "@/components/ui/card",
+   "props": {
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"text-sm font-medium\"": 1
+     }
+    }
+   },
+   "text": {
+    "Recent activity": 1,
+    "No projects yet": 1,
+    "Notifications": 1,
+    "Revenue": 1,
+    "Account": 1,
+    "Password": 1,
+    "Team": 1,
+    "Upload": 1
+   },
+   "seqs": {
+    "CardHeader": {
+     "": 11
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "CardHeader": 11
+   },
+   "propsBy": {
+    "CardHeader": {
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"text-sm font-medium\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "CardHeader": {
+     "Recent activity": 1,
+     "No projects yet": 1,
+     "Notifications": 1,
+     "Revenue": 1,
+     "Account": 1,
+     "Password": 1,
+     "Team": 1,
+     "Upload": 1
+    }
+   },
+   "content": 11,
+   "sigs": {
+    "CardHeader": {
+     "{\"p\":[],\"t\":\"Recent activity\"}": 1,
+     "{\"p\":[],\"t\":\"No projects yet\"}": 1,
+     "{\"p\":[],\"t\":\"Notifications\"}": 1,
+     "{\"p\":[],\"t\":\"\"}": 2,
+     "{\"p\":[],\"t\":\"Revenue\"}": 1,
+     "{\"p\":[],\"t\":\"Account\"}": 1,
+     "{\"p\":[],\"t\":\"Password\"}": 1,
+     "{\"p\":[[\"className\",\"\\\"text-sm font-medium\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[],\"t\":\"Team\"}": 1,
+     "{\"p\":[],\"t\":\"Upload\"}": 1
+    }
+   }
+  },
+  "CardContent": {
+   "count": 10,
+   "module": "@/components/ui/card",
+   "props": {
+    "className": {
+     "n": 3,
+     "vals": {
+      "\"grid gap-4\"": 3
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Card": {
+     "Avatar,Badge": 1,
+     "Switch,Label,Switch,Label": 1,
+     "": 2,
+     "Avatar": 2,
+     "RevenueChart": 1,
+     "Label,Input": 3
+    }
+   },
+   "wrapper": {
+    "<p className=\"text-3xl font-bold\">": 1,
+    "<div className=\"text-2xl font-bold\">": 1
+   },
+   "render": null,
+   "byParent": {
+    "Card": 10
+   },
+   "propsBy": {
+    "Card": {
+     "className": {
+      "n": 3,
+      "vals": {
+       "\"grid gap-4\"": 3
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Card": {}
+   },
+   "sigs": {
+    "Card": {
+     "{\"p\":[[\"className\",\"\\\"grid gap-4\\\"\"]],\"t\":\"\"}": 3,
+     "{\"p\":[],\"t\":\"\"}": 7
+    }
+   }
+  },
+  "Avatar": {
+   "count": 3,
+   "module": "@/components/ui/avatar",
+   "props": {
+    "key": {
+     "n": 1,
+     "vals": {
+      "{m.id}": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "CardContent": {
+     "AvatarFallback": 1,
+     "AvatarImage,AvatarFallback": 2
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "CardContent": 3
+   },
+   "propsBy": {
+    "CardContent": {
+     "key": {
+      "n": 1,
+      "vals": {
+       "{m.id}": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "CardContent": {}
+   },
+   "sigs": {
+    "CardContent": {
+     "{\"p\":[],\"t\":\"\"}": 2,
+     "{\"p\":[[\"key\",\"{m.id}\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "AvatarFallback": {
+   "count": 3,
+   "module": "@/components/ui/avatar",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "Avatar": {
+     "": 3
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Avatar": 3
+   },
+   "propsBy": {
+    "Avatar": {}
+   },
+   "textBy": {
+    "Avatar": {}
+   },
+   "content": 3,
+   "sigs": {
+    "Avatar": {
+     "{\"p\":[],\"t\":\"\"}": 3
+    }
+   }
+  },
+  "Badge": {
+   "count": 5,
+   "module": "@/components/ui/badge",
+   "props": {
+    "variant": {
+     "n": 4,
+     "vals": {
+      "\"outline\"": 2,
+      "\"secondary\"": 2
+     }
+    }
+   },
+   "text": {
+    "Popular": 1
+   },
+   "seqs": {
+    "CardContent": {
+     "": 1
+    },
+    "TableCell": {
+     "": 2
+    },
+    "CardHeader": {
+     "": 1
+    },
+    "ROOT": {
+     "": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "CardContent": 1,
+    "TableCell": 2,
+    "CardHeader": 1,
+    "ROOT": 1
+   },
+   "propsBy": {
+    "CardContent": {
+     "variant": {
+      "n": 1,
+      "vals": {
+       "\"outline\"": 1
+      }
+     }
+    },
+    "TableCell": {
+     "variant": {
+      "n": 1,
+      "vals": {
+       "\"outline\"": 1
+      }
+     }
+    },
+    "CardHeader": {
+     "variant": {
+      "n": 1,
+      "vals": {
+       "\"secondary\"": 1
+      }
+     }
+    },
+    "ROOT": {
+     "variant": {
+      "n": 1,
+      "vals": {
+       "\"secondary\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "CardContent": {},
+    "TableCell": {},
+    "CardHeader": {
+     "Popular": 1
+    },
+    "ROOT": {}
+   },
+   "content": 5,
+   "sigs": {
+    "CardContent": {
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"\"}": 1
+    },
+    "TableCell": {
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[],\"t\":\"\"}": 1
+    },
+    "CardHeader": {
+     "{\"p\":[[\"variant\",\"\\\"secondary\\\"\"]],\"t\":\"Popular\"}": 1
+    },
+    "ROOT": {
+     "{\"p\":[[\"variant\",\"\\\"secondary\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Dialog": {
+   "count": 5,
+   "module": "@/components/ui/dialog",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "ROOT": {
+     "DialogTrigger,DialogContent": 5
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "ROOT": 5
+   },
+   "propsBy": {
+    "ROOT": {}
+   },
+   "textBy": {
+    "ROOT": {}
+   },
+   "sigs": {
+    "ROOT": {
+     "{\"p\":[],\"t\":\"\"}": 5
+    }
+   }
+  },
+  "DialogTrigger": {
+   "count": 5,
+   "module": "@/components/ui/dialog",
+   "props": {
+    "asChild": {
+     "n": 5,
+     "vals": {
+      "true": 5
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Dialog": {
+     "Button": 5
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Dialog": 5
+   },
+   "propsBy": {
+    "Dialog": {
+     "asChild": {
+      "n": 5,
+      "vals": {
+       "true": 5
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Dialog": {}
+   },
+   "sigs": {
+    "Dialog": {
+     "{\"p\":[[\"asChild\",\"true\"]],\"t\":\"\"}": 5
+    }
+   }
+  },
+  "Button": {
+   "count": 29,
+   "module": "@/components/ui/button",
+   "props": {
+    "variant": {
+     "n": 11,
+     "vals": {
+      "\"destructive\"": 2,
+      "\"outline\"": 8,
+      "\"ghost\"": 1
+     }
+    },
+    "onClick": {
+     "n": 1,
+     "vals": {
+      "{onDelete}": 1
+     }
+    },
+    "type": {
+     "n": 7,
+     "vals": {
+      "\"submit\"": 7
+     }
+    },
+    "className": {
+     "n": 3,
+     "vals": {
+      "\"w-full\"": 3
+     }
+    },
+    "size": {
+     "n": 4,
+     "vals": {
+      "\"sm\"": 4
+     }
+    }
+   },
+   "text": {
+    "Delete": 2,
+    "Cancel": 3,
+    "Send": 1,
+    "Edit profile": 1,
+    "Save changes": 2,
+    "New project": 2,
+    "Invite": 2,
+    "Send invite": 1,
+    "Sign in": 1,
+    "Create": 1,
+    "Save": 2,
+    "Subscribe": 1,
+    "Search": 1,
+    "Save password": 1,
+    "Share": 1,
+    "Copy": 1,
+    "Create account": 1,
+    "Filter": 1,
+    "Sort": 1,
+    "Export": 1,
+    "Upload": 1,
+    "Edit": 1
+   },
+   "seqs": {
+    "DialogTrigger": {
+     "": 5
+    },
+    "DialogFooter": {
+     "": 7
+    },
+    "Form": {
+     "": 3
+    },
+    "CardFooter": {
+     "": 9
+    },
+    "ROOT": {
+     "": 4
+    },
+    "TableCell": {
+     "": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "DialogTrigger": 5,
+    "DialogFooter": 7,
+    "Form": 3,
+    "CardFooter": 9,
+    "ROOT": 4,
+    "TableCell": 1
+   },
+   "propsBy": {
+    "DialogTrigger": {
+     "variant": {
+      "n": 3,
+      "vals": {
+       "\"destructive\"": 1,
+       "\"outline\"": 2
+      }
+     }
+    },
+    "DialogFooter": {
+     "variant": {
+      "n": 3,
+      "vals": {
+       "\"outline\"": 2,
+       "\"destructive\"": 1
+      }
+     },
+     "onClick": {
+      "n": 1,
+      "vals": {
+       "{onDelete}": 1
+      }
+     },
+     "type": {
+      "n": 3,
+      "vals": {
+       "\"submit\"": 3
+      }
+     }
+    },
+    "Form": {
+     "type": {
+      "n": 3,
+      "vals": {
+       "\"submit\"": 3
+      }
+     },
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"w-full\"": 1
+      }
+     }
+    },
+    "CardFooter": {
+     "className": {
+      "n": 2,
+      "vals": {
+       "\"w-full\"": 2
+      }
+     },
+     "variant": {
+      "n": 2,
+      "vals": {
+       "\"outline\"": 2
+      }
+     }
+    },
+    "ROOT": {
+     "type": {
+      "n": 1,
+      "vals": {
+       "\"submit\"": 1
+      }
+     },
+     "variant": {
+      "n": 2,
+      "vals": {
+       "\"outline\"": 2
+      }
+     },
+     "size": {
+      "n": 3,
+      "vals": {
+       "\"sm\"": 3
+      }
+     }
+    },
+    "TableCell": {
+     "variant": {
+      "n": 1,
+      "vals": {
+       "\"ghost\"": 1
+      }
+     },
+     "size": {
+      "n": 1,
+      "vals": {
+       "\"sm\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "DialogTrigger": {
+     "Delete": 1,
+     "Edit profile": 1,
+     "Invite": 1,
+     "New project": 1,
+     "Share": 1
+    },
+    "DialogFooter": {
+     "Cancel": 2,
+     "Delete": 1,
+     "Save changes": 1,
+     "Send invite": 1,
+     "Create": 1,
+     "Copy": 1
+    },
+    "Form": {
+     "Send": 1,
+     "Sign in": 1,
+     "Create account": 1
+    },
+    "CardFooter": {
+     "New project": 1,
+     "Save": 2,
+     "Subscribe": 1,
+     "Cancel": 1,
+     "Save changes": 1,
+     "Save password": 1,
+     "Invite": 1,
+     "Upload": 1
+    },
+    "ROOT": {
+     "Search": 1,
+     "Filter": 1,
+     "Sort": 1,
+     "Export": 1
+    },
+    "TableCell": {
+     "Edit": 1
+    }
+   },
+   "content": 29,
+   "sigs": {
+    "DialogTrigger": {
+     "{\"p\":[[\"variant\",\"\\\"destructive\\\"\"]],\"t\":\"Delete\"}": 1,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Edit profile\"}": 1,
+     "{\"p\":[],\"t\":\"Invite\"}": 1,
+     "{\"p\":[],\"t\":\"New project\"}": 1,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Share\"}": 1
+    },
+    "DialogFooter": {
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Cancel\"}": 2,
+     "{\"p\":[[\"variant\",\"\\\"destructive\\\"\"],[\"onClick\",\"{onDelete}\"]],\"t\":\"Delete\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Save changes\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Send invite\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Create\"}": 1,
+     "{\"p\":[],\"t\":\"Copy\"}": 1
+    },
+    "Form": {
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Send\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Sign in\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"],[\"className\",\"\\\"w-full\\\"\"]],\"t\":\"Create account\"}": 1
+    },
+    "CardFooter": {
+     "{\"p\":[],\"t\":\"New project\"}": 1,
+     "{\"p\":[[\"className\",\"\\\"w-full\\\"\"]],\"t\":\"Save\"}": 1,
+     "{\"p\":[[\"className\",\"\\\"w-full\\\"\"]],\"t\":\"Subscribe\"}": 1,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Cancel\"}": 1,
+     "{\"p\":[],\"t\":\"Save\"}": 1,
+     "{\"p\":[],\"t\":\"Save changes\"}": 1,
+     "{\"p\":[],\"t\":\"Save password\"}": 1,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Invite\"}": 1,
+     "{\"p\":[],\"t\":\"Upload\"}": 1
+    },
+    "ROOT": {
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Search\"}": 1,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"],[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Filter\"}": 1,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"],[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Sort\"}": 1,
+     "{\"p\":[[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Export\"}": 1
+    },
+    "TableCell": {
+     "{\"p\":[[\"variant\",\"\\\"ghost\\\"\"],[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Edit\"}": 1
+    }
+   }
+  },
+  "DialogContent": {
+   "count": 5,
+   "module": "@/components/ui/dialog",
+   "props": {
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"sm:max-w-[425px]\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Dialog": {
+     "DialogHeader,DialogFooter": 1,
+     "DialogHeader,Label,Input,DialogFooter": 3,
+     "DialogHeader,Input,DialogFooter": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Dialog": 5
+   },
+   "propsBy": {
+    "Dialog": {
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"sm:max-w-[425px]\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Dialog": {}
+   },
+   "sigs": {
+    "Dialog": {
+     "{\"p\":[],\"t\":\"\"}": 4,
+     "{\"p\":[[\"className\",\"\\\"sm:max-w-[425px]\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "DialogHeader": {
+   "count": 5,
+   "module": "@/components/ui/dialog",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "DialogContent": {
+     "DialogTitle,DialogDescription": 4,
+     "DialogTitle": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "DialogContent": 5
+   },
+   "propsBy": {
+    "DialogContent": {}
+   },
+   "textBy": {
+    "DialogContent": {}
+   },
+   "sigs": {
+    "DialogContent": {
+     "{\"p\":[],\"t\":\"\"}": 5
+    }
+   }
+  },
+  "DialogTitle": {
+   "count": 5,
+   "module": "@/components/ui/dialog",
+   "props": {},
+   "text": {
+    "Are you sure?": 1,
+    "Edit profile": 1,
+    "Invite a teammate": 1,
+    "New project": 1,
+    "Share link": 1
+   },
+   "seqs": {
+    "DialogHeader": {
+     "": 5
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "DialogHeader": 5
+   },
+   "propsBy": {
+    "DialogHeader": {}
+   },
+   "textBy": {
+    "DialogHeader": {
+     "Are you sure?": 1,
+     "Edit profile": 1,
+     "Invite a teammate": 1,
+     "New project": 1,
+     "Share link": 1
+    }
+   },
+   "content": 5,
+   "sigs": {
+    "DialogHeader": {
+     "{\"p\":[],\"t\":\"Are you sure?\"}": 1,
+     "{\"p\":[],\"t\":\"Edit profile\"}": 1,
+     "{\"p\":[],\"t\":\"Invite a teammate\"}": 1,
+     "{\"p\":[],\"t\":\"New project\"}": 1,
+     "{\"p\":[],\"t\":\"Share link\"}": 1
+    }
+   }
+  },
+  "DialogDescription": {
+   "count": 4,
+   "module": "@/components/ui/dialog",
+   "props": {},
+   "text": {
+    "This cannot be undone.": 1,
+    "Make changes to your profile here.": 1,
+    "They will get an email.": 1,
+    "Anyone with the link can view.": 1
+   },
+   "seqs": {
+    "DialogHeader": {
+     "": 4
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "DialogHeader": 4
+   },
+   "propsBy": {
+    "DialogHeader": {}
+   },
+   "textBy": {
+    "DialogHeader": {
+     "This cannot be undone.": 1,
+     "Make changes to your profile here.": 1,
+     "They will get an email.": 1,
+     "Anyone with the link can view.": 1
+    }
+   },
+   "content": 4,
+   "sigs": {
+    "DialogHeader": {
+     "{\"p\":[],\"t\":\"This cannot be undone.\"}": 1,
+     "{\"p\":[],\"t\":\"Make changes to your profile here.\"}": 1,
+     "{\"p\":[],\"t\":\"They will get an email.\"}": 1,
+     "{\"p\":[],\"t\":\"Anyone with the link can view.\"}": 1
+    }
+   }
+  },
+  "DialogFooter": {
+   "count": 5,
+   "module": "@/components/ui/dialog",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "DialogContent": {
+     "Button,Button": 2,
+     "Button": 3
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "DialogContent": 5
+   },
+   "propsBy": {
+    "DialogContent": {}
+   },
+   "textBy": {
+    "DialogContent": {}
+   },
+   "sigs": {
+    "DialogContent": {
+     "{\"p\":[],\"t\":\"\"}": 5
+    }
+   }
+  },
+  "Form": {
+   "count": 3,
+   "module": "@/components/ui/form",
+   "props": {
+    "...form": {
+     "n": 3,
+     "vals": {}
+    }
+   },
+   "text": {},
+   "seqs": {
+    "ROOT": {
+     "FormField,FormField,Button": 2,
+     "FormField,FormField,FormField,Button": 1
+    }
+   },
+   "wrapper": {
+    "<form onSubmit={form.handleSubmit(onSubmit)} className=\"space-y-6\">": 3
+   },
+   "render": null,
+   "byParent": {
+    "ROOT": 3
+   },
+   "propsBy": {
+    "ROOT": {
+     "...form": {
+      "n": 3,
+      "vals": {}
+     }
+    }
+   },
+   "textBy": {
+    "ROOT": {}
+   },
+   "sigs": {
+    "ROOT": {
+     "{\"p\":[[\"...form\",null]],\"t\":\"\"}": 3
+    }
+   }
+  },
+  "FormField": {
+   "count": 7,
+   "module": "@/components/ui/form",
+   "props": {
+    "control": {
+     "n": 7,
+     "vals": {
+      "{form.control}": 7
+     }
+    },
+    "name": {
+     "n": 7,
+     "vals": {
+      "\"email\"": 3,
+      "\"message\"": 1,
+      "\"password\"": 2,
+      "\"name\"": 1
+     }
+    },
+    "render": {
+     "n": 7,
+     "vals": {}
+    }
+   },
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": {
+    "prop": "render",
+    "params": "{ field }"
+   },
+   "byParent": {
+    "Form": 7
+   },
+   "propsBy": {
+    "Form": {
+     "control": {
+      "n": 7,
+      "vals": {
+       "{form.control}": 7
+      }
+     },
+     "name": {
+      "n": 7,
+      "vals": {
+       "\"email\"": 3,
+       "\"message\"": 1,
+       "\"password\"": 2,
+       "\"name\"": 1
+      }
+     },
+     "render": {
+      "n": 7,
+      "vals": {}
+     }
+    }
+   },
+   "textBy": {
+    "Form": {}
+   },
+   "sigs": {
+    "Form": {
+     "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"email\\\"\"]],\"t\":\"\"}": 3,
+     "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"message\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"password\\\"\"]],\"t\":\"\"}": 2,
+     "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"name\\\"\"]],\"t\":\"\"}": 1
+    }
+   },
+   "renderSeqs": {
+    "FormItem": 7
+   }
+  },
+  "FormItem": {
+   "count": 7,
+   "module": "@/components/ui/form",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "FormField": {
+     "FormLabel,FormControl,FormMessage": 6,
+     "FormLabel,FormControl,FormDescription,FormMessage": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormField": 7
+   },
+   "propsBy": {
+    "FormField": {}
+   },
+   "textBy": {
+    "FormField": {}
+   },
+   "sigs": {
+    "FormField": {
+     "{\"p\":[],\"t\":\"\"}": 7
+    }
+   }
+  },
+  "FormLabel": {
+   "count": 7,
+   "module": "@/components/ui/form",
+   "props": {},
+   "text": {
+    "Email": 3,
+    "Message": 1,
+    "Password": 2,
+    "Name": 1
+   },
+   "seqs": {
+    "FormItem": {
+     "": 7
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormItem": 7
+   },
+   "propsBy": {
+    "FormItem": {}
+   },
+   "textBy": {
+    "FormItem": {
+     "Email": 3,
+     "Message": 1,
+     "Password": 2,
+     "Name": 1
+    }
+   },
+   "content": 7,
+   "sigs": {
+    "FormItem": {
+     "{\"p\":[],\"t\":\"Email\"}": 3,
+     "{\"p\":[],\"t\":\"Message\"}": 1,
+     "{\"p\":[],\"t\":\"Password\"}": 2,
+     "{\"p\":[],\"t\":\"Name\"}": 1
+    }
+   }
+  },
+  "FormControl": {
+   "count": 7,
+   "module": "@/components/ui/form",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "FormItem": {
+     "Input": 6,
+     "Textarea": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormItem": 7
+   },
+   "propsBy": {
+    "FormItem": {}
+   },
+   "textBy": {
+    "FormItem": {}
+   },
+   "sigs": {
+    "FormItem": {
+     "{\"p\":[],\"t\":\"\"}": 7
+    }
+   }
+  },
+  "Input": {
+   "count": 14,
+   "module": "@/components/ui/input",
+   "props": {
+    "type": {
+     "n": 9,
+     "vals": {
+      "\"email\"": 4,
+      "\"password\"": 3,
+      "\"search\"": 1,
+      "\"file\"": 1
+     }
+    },
+    "placeholder": {
+     "n": 7,
+     "vals": {
+      "\"you@example.com\"": 4,
+      "\"Acme\"": 1,
+      "\"Search...\"": 1,
+      "\"Your name\"": 1
+     }
+    },
+    "...field": {
+     "n": 6,
+     "vals": {}
+    },
+    "id": {
+     "n": 6,
+     "vals": {
+      "\"name\"": 1,
+      "\"invite-email\"": 1,
+      "\"project\"": 1,
+      "\"username\"": 1,
+      "\"current\"": 1,
+      "\"file\"": 1
+     }
+    },
+    "defaultValue": {
+     "n": 3,
+     "vals": {
+      "\"Pedro Duarte\"": 1,
+      "\"@peduarte\"": 1,
+      "{url}": 1
+     }
+    },
+    "readOnly": {
+     "n": 1,
+     "vals": {
+      "true": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormControl": 6,
+    "DialogContent": 4,
+    "ROOT": 1,
+    "CardContent": 3
+   },
+   "propsBy": {
+    "FormControl": {
+     "type": {
+      "n": 5,
+      "vals": {
+       "\"email\"": 3,
+       "\"password\"": 2
+      }
+     },
+     "placeholder": {
+      "n": 4,
+      "vals": {
+       "\"you@example.com\"": 3,
+       "\"Your name\"": 1
+      }
+     },
+     "...field": {
+      "n": 6,
+      "vals": {}
+     }
+    },
+    "DialogContent": {
+     "id": {
+      "n": 3,
+      "vals": {
+       "\"name\"": 1,
+       "\"invite-email\"": 1,
+       "\"project\"": 1
+      }
+     },
+     "defaultValue": {
+      "n": 2,
+      "vals": {
+       "\"Pedro Duarte\"": 1,
+       "{url}": 1
+      }
+     },
+     "type": {
+      "n": 1,
+      "vals": {
+       "\"email\"": 1
+      }
+     },
+     "placeholder": {
+      "n": 2,
+      "vals": {
+       "\"you@example.com\"": 1,
+       "\"Acme\"": 1
+      }
+     },
+     "readOnly": {
+      "n": 1,
+      "vals": {
+       "true": 1
+      }
+     }
+    },
+    "ROOT": {
+     "type": {
+      "n": 1,
+      "vals": {
+       "\"search\"": 1
+      }
+     },
+     "placeholder": {
+      "n": 1,
+      "vals": {
+       "\"Search...\"": 1
+      }
+     }
+    },
+    "CardContent": {
+     "id": {
+      "n": 3,
+      "vals": {
+       "\"username\"": 1,
+       "\"current\"": 1,
+       "\"file\"": 1
+      }
+     },
+     "defaultValue": {
+      "n": 1,
+      "vals": {
+       "\"@peduarte\"": 1
+      }
+     },
+     "type": {
+      "n": 2,
+      "vals": {
+       "\"password\"": 1,
+       "\"file\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "FormControl": {},
+    "DialogContent": {},
+    "ROOT": {},
+    "CardContent": {}
+   },
+   "sigs": {
+    "FormControl": {
+     "{\"p\":[[\"type\",\"\\\"email\\\"\"],[\"placeholder\",\"\\\"you@example.com\\\"\"],[\"...field\",null]],\"t\":\"\"}": 3,
+     "{\"p\":[[\"type\",\"\\\"password\\\"\"],[\"...field\",null]],\"t\":\"\"}": 2,
+     "{\"p\":[[\"placeholder\",\"\\\"Your name\\\"\"],[\"...field\",null]],\"t\":\"\"}": 1
+    },
+    "DialogContent": {
+     "{\"p\":[[\"id\",\"\\\"name\\\"\"],[\"defaultValue\",\"\\\"Pedro Duarte\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"invite-email\\\"\"],[\"type\",\"\\\"email\\\"\"],[\"placeholder\",\"\\\"you@example.com\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"project\\\"\"],[\"placeholder\",\"\\\"Acme\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"readOnly\",\"true\"],[\"defaultValue\",\"{url}\"]],\"t\":\"\"}": 1
+    },
+    "ROOT": {
+     "{\"p\":[[\"type\",\"\\\"search\\\"\"],[\"placeholder\",\"\\\"Search...\\\"\"]],\"t\":\"\"}": 1
+    },
+    "CardContent": {
+     "{\"p\":[[\"id\",\"\\\"username\\\"\"],[\"defaultValue\",\"\\\"@peduarte\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"current\\\"\"],[\"type\",\"\\\"password\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"file\\\"\"],[\"type\",\"\\\"file\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "FormMessage": {
+   "count": 7,
+   "module": "@/components/ui/form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormItem": 7
+   },
+   "propsBy": {
+    "FormItem": {}
+   },
+   "textBy": {
+    "FormItem": {}
+   },
+   "sigs": {
+    "FormItem": {
+     "{\"p\":[],\"t\":\"\"}": 7
+    }
+   }
+  },
+  "Textarea": {
+   "count": 1,
+   "module": "@/components/ui/textarea",
+   "props": {
+    "placeholder": {
+     "n": 1,
+     "vals": {
+      "\"How can we help?\"": 1
+     }
+    },
+    "...field": {
+     "n": 1,
+     "vals": {}
+    }
+   },
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormControl": 1
+   },
+   "propsBy": {
+    "FormControl": {
+     "placeholder": {
+      "n": 1,
+      "vals": {
+       "\"How can we help?\"": 1
+      }
+     },
+     "...field": {
+      "n": 1,
+      "vals": {}
+     }
+    }
+   },
+   "textBy": {
+    "FormControl": {}
+   },
+   "sigs": {
+    "FormControl": {
+     "{\"p\":[[\"placeholder\",\"\\\"How can we help?\\\"\"],[\"...field\",null]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Label": {
+   "count": 9,
+   "module": "@/components/ui/label",
+   "props": {
+    "htmlFor": {
+     "n": 9,
+     "vals": {
+      "\"name\"": 1,
+      "\"invite-email\"": 1,
+      "\"project\"": 1,
+      "\"email\"": 1,
+      "\"push\"": 1,
+      "\"plan\"": 1,
+      "\"username\"": 1,
+      "\"current\"": 1,
+      "\"file\"": 1
+     }
+    }
+   },
+   "text": {
+    "Name": 2,
+    "Email": 2,
+    "Push": 1,
+    "Plan": 1,
+    "Username": 1,
+    "Current password": 1,
+    "File": 1
+   },
+   "seqs": {
+    "DialogContent": {
+     "": 3
+    },
+    "CardContent": {
+     "": 5
+    },
+    "ROOT": {
+     "": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "DialogContent": 3,
+    "CardContent": 5,
+    "ROOT": 1
+   },
+   "propsBy": {
+    "DialogContent": {
+     "htmlFor": {
+      "n": 3,
+      "vals": {
+       "\"name\"": 1,
+       "\"invite-email\"": 1,
+       "\"project\"": 1
+      }
+     }
+    },
+    "CardContent": {
+     "htmlFor": {
+      "n": 5,
+      "vals": {
+       "\"email\"": 1,
+       "\"push\"": 1,
+       "\"username\"": 1,
+       "\"current\"": 1,
+       "\"file\"": 1
+      }
+     }
+    },
+    "ROOT": {
+     "htmlFor": {
+      "n": 1,
+      "vals": {
+       "\"plan\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "DialogContent": {
+     "Name": 2,
+     "Email": 1
+    },
+    "CardContent": {
+     "Email": 1,
+     "Push": 1,
+     "Username": 1,
+     "Current password": 1,
+     "File": 1
+    },
+    "ROOT": {
+     "Plan": 1
+    }
+   },
+   "content": 9,
+   "sigs": {
+    "DialogContent": {
+     "{\"p\":[[\"htmlFor\",\"\\\"name\\\"\"]],\"t\":\"Name\"}": 1,
+     "{\"p\":[[\"htmlFor\",\"\\\"invite-email\\\"\"]],\"t\":\"Email\"}": 1,
+     "{\"p\":[[\"htmlFor\",\"\\\"project\\\"\"]],\"t\":\"Name\"}": 1
+    },
+    "CardContent": {
+     "{\"p\":[[\"htmlFor\",\"\\\"email\\\"\"]],\"t\":\"Email\"}": 1,
+     "{\"p\":[[\"htmlFor\",\"\\\"push\\\"\"]],\"t\":\"Push\"}": 1,
+     "{\"p\":[[\"htmlFor\",\"\\\"username\\\"\"]],\"t\":\"Username\"}": 1,
+     "{\"p\":[[\"htmlFor\",\"\\\"current\\\"\"]],\"t\":\"Current password\"}": 1,
+     "{\"p\":[[\"htmlFor\",\"\\\"file\\\"\"]],\"t\":\"File\"}": 1
+    },
+    "ROOT": {
+     "{\"p\":[[\"htmlFor\",\"\\\"plan\\\"\"]],\"t\":\"Plan\"}": 1
+    }
+   }
+  },
+  "CardDescription": {
+   "count": 8,
+   "module": "@/components/ui/card",
+   "props": {},
+   "text": {
+    "Create your first project to get started.": 1,
+    "Choose what you hear about.": 1,
+    "Last 30 days": 1,
+    "Make changes to your account here.": 1,
+    "Invite people to work with you.": 1,
+    "Files up to 10 MB.": 1
+   },
+   "seqs": {
+    "CardHeader": {
+     "": 8
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "CardHeader": 8
+   },
+   "propsBy": {
+    "CardHeader": {}
+   },
+   "textBy": {
+    "CardHeader": {
+     "Create your first project to get started.": 1,
+     "Choose what you hear about.": 1,
+     "Last 30 days": 1,
+     "Make changes to your account here.": 1,
+     "Invite people to work with you.": 1,
+     "Files up to 10 MB.": 1
+    }
+   },
+   "content": 8,
+   "sigs": {
+    "CardHeader": {
+     "{\"p\":[],\"t\":\"Create your first project to get started.\"}": 1,
+     "{\"p\":[],\"t\":\"Choose what you hear about.\"}": 1,
+     "{\"p\":[],\"t\":\"\"}": 2,
+     "{\"p\":[],\"t\":\"Last 30 days\"}": 1,
+     "{\"p\":[],\"t\":\"Make changes to your account here.\"}": 1,
+     "{\"p\":[],\"t\":\"Invite people to work with you.\"}": 1,
+     "{\"p\":[],\"t\":\"Files up to 10 MB.\"}": 1
+    }
+   }
+  },
+  "CardFooter": {
+   "count": 8,
+   "module": "@/components/ui/card",
+   "props": {
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"flex justify-between\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Card": {
+     "Button": 7,
+     "Button,Button": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Card": 8
+   },
+   "propsBy": {
+    "Card": {
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"flex justify-between\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Card": {}
+   },
+   "sigs": {
+    "Card": {
+     "{\"p\":[],\"t\":\"\"}": 7,
+     "{\"p\":[[\"className\",\"\\\"flex justify-between\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Table": {
+   "count": 3,
+   "module": "@/components/ui/table",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "ROOT": {
+     "TableCaption,TableHeader,TableBody": 1,
+     "TableHeader,TableBody": 2
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "ROOT": 3
+   },
+   "propsBy": {
+    "ROOT": {}
+   },
+   "textBy": {
+    "ROOT": {}
+   },
+   "sigs": {
+    "ROOT": {
+     "{\"p\":[],\"t\":\"\"}": 3
+    }
+   }
+  },
+  "TableCaption": {
+   "count": 1,
+   "module": "@/components/ui/table",
+   "props": {},
+   "text": {
+    "Your recent invoices.": 1
+   },
+   "seqs": {
+    "Table": {
+     "": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Table": 1
+   },
+   "propsBy": {
+    "Table": {}
+   },
+   "textBy": {
+    "Table": {
+     "Your recent invoices.": 1
+    }
+   },
+   "content": 1,
+   "sigs": {
+    "Table": {
+     "{\"p\":[],\"t\":\"Your recent invoices.\"}": 1
+    }
+   }
+  },
+  "TableHeader": {
+   "count": 3,
+   "module": "@/components/ui/table",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "Table": {
+     "TableRow": 3
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Table": 3
+   },
+   "propsBy": {
+    "Table": {}
+   },
+   "textBy": {
+    "Table": {}
+   },
+   "sigs": {
+    "Table": {
+     "{\"p\":[],\"t\":\"\"}": 3
+    }
+   }
+  },
+  "TableRow": {
+   "count": 6,
+   "module": "@/components/ui/table",
+   "props": {
+    "key": {
+     "n": 3,
+     "vals": {
+      "{i.id}": 1,
+      "{o.id}": 1,
+      "{u.id}": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "TableHeader": {
+     "TableHead,TableHead,TableHead,TableHead": 2,
+     "TableHead,TableHead,TableHead": 1
+    },
+    "TableBody": {
+     "TableCell,TableCell,TableCell,TableCell": 2,
+     "TableCell,TableCell,TableCell": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TableHeader": 3,
+    "TableBody": 3
+   },
+   "propsBy": {
+    "TableHeader": {},
+    "TableBody": {
+     "key": {
+      "n": 3,
+      "vals": {
+       "{i.id}": 1,
+       "{o.id}": 1,
+       "{u.id}": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "TableHeader": {},
+    "TableBody": {}
+   },
+   "sigs": {
+    "TableHeader": {
+     "{\"p\":[],\"t\":\"\"}": 3
+    },
+    "TableBody": {
+     "{\"p\":[[\"key\",\"{i.id}\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"key\",\"{o.id}\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"key\",\"{u.id}\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "TableHead": {
+   "count": 11,
+   "module": "@/components/ui/table",
+   "props": {
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"text-right\"": 1
+     }
+    }
+   },
+   "text": {
+    "Invoice": 1,
+    "Status": 2,
+    "Method": 1,
+    "Amount": 1,
+    "Order": 1,
+    "Customer": 1,
+    "Name": 1,
+    "Email": 1,
+    "Role": 1
+   },
+   "seqs": {
+    "TableRow": {
+     "": 10
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TableRow": 11
+   },
+   "propsBy": {
+    "TableRow": {
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"text-right\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "TableRow": {
+     "Invoice": 1,
+     "Status": 2,
+     "Method": 1,
+     "Amount": 1,
+     "Order": 1,
+     "Customer": 1,
+     "Name": 1,
+     "Email": 1,
+     "Role": 1
+    }
+   },
+   "content": 10,
+   "sigs": {
+    "TableRow": {
+     "{\"p\":[],\"t\":\"Invoice\"}": 1,
+     "{\"p\":[],\"t\":\"Status\"}": 2,
+     "{\"p\":[],\"t\":\"Method\"}": 1,
+     "{\"p\":[[\"className\",\"\\\"text-right\\\"\"]],\"t\":\"Amount\"}": 1,
+     "{\"p\":[],\"t\":\"Order\"}": 1,
+     "{\"p\":[],\"t\":\"Customer\"}": 1,
+     "{\"p\":[],\"t\":\"Name\"}": 1,
+     "{\"p\":[],\"t\":\"Email\"}": 1,
+     "{\"p\":[],\"t\":\"Role\"}": 1,
+     "{\"p\":[],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "TableBody": {
+   "count": 3,
+   "module": "@/components/ui/table",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "Table": {
+     "TableRow": 3
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Table": 3
+   },
+   "propsBy": {
+    "Table": {}
+   },
+   "textBy": {
+    "Table": {}
+   },
+   "sigs": {
+    "Table": {
+     "{\"p\":[],\"t\":\"\"}": 3
+    }
+   }
+  },
+  "TableCell": {
+   "count": 11,
+   "module": "@/components/ui/table",
+   "props": {
+    "className": {
+     "n": 2,
+     "vals": {
+      "\"font-medium\"": 1,
+      "\"text-right\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "TableRow": {
+     "": 8,
+     "Badge": 2,
+     "Button": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TableRow": 11
+   },
+   "propsBy": {
+    "TableRow": {
+     "className": {
+      "n": 2,
+      "vals": {
+       "\"font-medium\"": 1,
+       "\"text-right\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "TableRow": {}
+   },
+   "content": 8,
+   "sigs": {
+    "TableRow": {
+     "{\"p\":[[\"className\",\"\\\"font-medium\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[],\"t\":\"\"}": 9,
+     "{\"p\":[[\"className\",\"\\\"text-right\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Switch": {
+   "count": 2,
+   "module": "@/components/ui/switch",
+   "props": {
+    "id": {
+     "n": 2,
+     "vals": {
+      "\"email\"": 1,
+      "\"push\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "CardContent": 2
+   },
+   "propsBy": {
+    "CardContent": {
+     "id": {
+      "n": 2,
+      "vals": {
+       "\"email\"": 1,
+       "\"push\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "CardContent": {}
+   },
+   "sigs": {
+    "CardContent": {
+     "{\"p\":[[\"id\",\"\\\"email\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"push\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Select": {
+   "count": 2,
+   "module": "@/components/ui/select",
+   "props": {
+    "defaultValue": {
+     "n": 1,
+     "vals": {
+      "\"pro\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "ROOT": {
+     "SelectTrigger,SelectContent": 2
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "ROOT": 2
+   },
+   "propsBy": {
+    "ROOT": {
+     "defaultValue": {
+      "n": 1,
+      "vals": {
+       "\"pro\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "ROOT": {}
+   },
+   "sigs": {
+    "ROOT": {
+     "{\"p\":[[\"defaultValue\",\"\\\"pro\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "SelectTrigger": {
+   "count": 2,
+   "module": "@/components/ui/select",
+   "props": {
+    "id": {
+     "n": 1,
+     "vals": {
+      "\"plan\"": 1
+     }
+    },
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"w-[180px]\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Select": {
+     "SelectValue": 2
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Select": 2
+   },
+   "propsBy": {
+    "Select": {
+     "id": {
+      "n": 1,
+      "vals": {
+       "\"plan\"": 1
+      }
+     },
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"w-[180px]\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Select": {}
+   },
+   "sigs": {
+    "Select": {
+     "{\"p\":[[\"id\",\"\\\"plan\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"className\",\"\\\"w-[180px]\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "SelectValue": {
+   "count": 2,
+   "module": "@/components/ui/select",
+   "props": {
+    "placeholder": {
+     "n": 2,
+     "vals": {
+      "\"Choose a plan\"": 1,
+      "\"Role\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "SelectTrigger": 2
+   },
+   "propsBy": {
+    "SelectTrigger": {
+     "placeholder": {
+      "n": 2,
+      "vals": {
+       "\"Choose a plan\"": 1,
+       "\"Role\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "SelectTrigger": {}
+   },
+   "sigs": {
+    "SelectTrigger": {
+     "{\"p\":[[\"placeholder\",\"\\\"Choose a plan\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"placeholder\",\"\\\"Role\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "SelectContent": {
+   "count": 2,
+   "module": "@/components/ui/select",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "Select": {
+     "SelectItem,SelectItem,SelectItem": 1,
+     "SelectItem,SelectItem": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Select": 2
+   },
+   "propsBy": {
+    "Select": {}
+   },
+   "textBy": {
+    "Select": {}
+   },
+   "sigs": {
+    "Select": {
+     "{\"p\":[],\"t\":\"\"}": 2
+    }
+   }
+  },
+  "SelectItem": {
+   "count": 5,
+   "module": "@/components/ui/select",
+   "props": {
+    "value": {
+     "n": 5,
+     "vals": {
+      "\"free\"": 1,
+      "\"pro\"": 1,
+      "\"team\"": 1,
+      "\"admin\"": 1,
+      "\"member\"": 1
+     }
+    }
+   },
+   "text": {
+    "Free": 1,
+    "Pro": 1,
+    "Team": 1,
+    "Admin": 1,
+    "Member": 1
+   },
+   "seqs": {
+    "SelectContent": {
+     "": 5
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "SelectContent": 5
+   },
+   "propsBy": {
+    "SelectContent": {
+     "value": {
+      "n": 5,
+      "vals": {
+       "\"free\"": 1,
+       "\"pro\"": 1,
+       "\"team\"": 1,
+       "\"admin\"": 1,
+       "\"member\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "SelectContent": {
+     "Free": 1,
+     "Pro": 1,
+     "Team": 1,
+     "Admin": 1,
+     "Member": 1
+    }
+   },
+   "content": 5,
+   "sigs": {
+    "SelectContent": {
+     "{\"p\":[[\"value\",\"\\\"free\\\"\"]],\"t\":\"Free\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"pro\\\"\"]],\"t\":\"Pro\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"team\\\"\"]],\"t\":\"Team\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"admin\\\"\"]],\"t\":\"Admin\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"member\\\"\"]],\"t\":\"Member\"}": 1
+    }
+   }
+  },
+  "AvatarImage": {
+   "count": 2,
+   "module": "@/components/ui/avatar",
+   "props": {
+    "src": {
+     "n": 2,
+     "vals": {
+      "{user.avatar}": 1,
+      "{m.avatar}": 1
+     }
+    },
+    "alt": {
+     "n": 2,
+     "vals": {
+      "{user.name}": 1,
+      "{m.name}": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Avatar": 2
+   },
+   "propsBy": {
+    "Avatar": {
+     "src": {
+      "n": 2,
+      "vals": {
+       "{user.avatar}": 1,
+       "{m.avatar}": 1
+      }
+     },
+     "alt": {
+      "n": 2,
+      "vals": {
+       "{user.name}": 1,
+       "{m.name}": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Avatar": {}
+   },
+   "sigs": {
+    "Avatar": {
+     "{\"p\":[[\"src\",\"{user.avatar}\"],[\"alt\",\"{user.name}\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"src\",\"{m.avatar}\"],[\"alt\",\"{m.name}\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Tabs": {
+   "count": 2,
+   "module": "@/components/ui/tabs",
+   "props": {
+    "defaultValue": {
+     "n": 2,
+     "vals": {
+      "\"overview\"": 1,
+      "\"account\"": 1
+     }
+    },
+    "className": {
+     "n": 1,
+     "vals": {
+      "\"w-[400px]\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "ROOT": {
+     "TabsList,TabsContent,TabsContent,TabsContent": 1,
+     "TabsList,TabsContent,TabsContent": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "ROOT": 2
+   },
+   "propsBy": {
+    "ROOT": {
+     "defaultValue": {
+      "n": 2,
+      "vals": {
+       "\"overview\"": 1,
+       "\"account\"": 1
+      }
+     },
+     "className": {
+      "n": 1,
+      "vals": {
+       "\"w-[400px]\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "ROOT": {}
+   },
+   "sigs": {
+    "ROOT": {
+     "{\"p\":[[\"defaultValue\",\"\\\"overview\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"defaultValue\",\"\\\"account\\\"\"],[\"className\",\"\\\"w-[400px]\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "TabsList": {
+   "count": 2,
+   "module": "@/components/ui/tabs",
+   "props": {},
+   "text": {},
+   "seqs": {
+    "Tabs": {
+     "TabsTrigger,TabsTrigger,TabsTrigger": 1,
+     "TabsTrigger,TabsTrigger": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Tabs": 2
+   },
+   "propsBy": {
+    "Tabs": {}
+   },
+   "textBy": {
+    "Tabs": {}
+   },
+   "sigs": {
+    "Tabs": {
+     "{\"p\":[],\"t\":\"\"}": 2
+    }
+   }
+  },
+  "TabsTrigger": {
+   "count": 5,
+   "module": "@/components/ui/tabs",
+   "props": {
+    "value": {
+     "n": 5,
+     "vals": {
+      "\"overview\"": 1,
+      "\"analytics\"": 1,
+      "\"reports\"": 1,
+      "\"account\"": 1,
+      "\"password\"": 1
+     }
+    }
+   },
+   "text": {
+    "Overview": 1,
+    "Analytics": 1,
+    "Reports": 1,
+    "Account": 1,
+    "Password": 1
+   },
+   "seqs": {
+    "TabsList": {
+     "": 5
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TabsList": 5
+   },
+   "propsBy": {
+    "TabsList": {
+     "value": {
+      "n": 5,
+      "vals": {
+       "\"overview\"": 1,
+       "\"analytics\"": 1,
+       "\"reports\"": 1,
+       "\"account\"": 1,
+       "\"password\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "TabsList": {
+     "Overview": 1,
+     "Analytics": 1,
+     "Reports": 1,
+     "Account": 1,
+     "Password": 1
+    }
+   },
+   "content": 5,
+   "sigs": {
+    "TabsList": {
+     "{\"p\":[[\"value\",\"\\\"overview\\\"\"]],\"t\":\"Overview\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"analytics\\\"\"]],\"t\":\"Analytics\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"reports\\\"\"]],\"t\":\"Reports\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"account\\\"\"]],\"t\":\"Account\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"password\\\"\"]],\"t\":\"Password\"}": 1
+    }
+   }
+  },
+  "TabsContent": {
+   "count": 5,
+   "module": "@/components/ui/tabs",
+   "props": {
+    "value": {
+     "n": 5,
+     "vals": {
+      "\"overview\"": 1,
+      "\"analytics\"": 1,
+      "\"reports\"": 1,
+      "\"account\"": 1,
+      "\"password\"": 1
+     }
+    }
+   },
+   "text": {},
+   "seqs": {
+    "Tabs": {
+     "Overview": 1,
+     "Analytics": 1,
+     "Reports": 1,
+     "Card": 2
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "Tabs": 5
+   },
+   "propsBy": {
+    "Tabs": {
+     "value": {
+      "n": 5,
+      "vals": {
+       "\"overview\"": 1,
+       "\"analytics\"": 1,
+       "\"reports\"": 1,
+       "\"account\"": 1,
+       "\"password\"": 1
+      }
+     }
+    }
+   },
+   "textBy": {
+    "Tabs": {}
+   },
+   "sigs": {
+    "Tabs": {
+     "{\"p\":[[\"value\",\"\\\"overview\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"analytics\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"reports\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"account\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"value\",\"\\\"password\\\"\"]],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Overview": {
+   "count": 1,
+   "module": null,
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TabsContent": 1
+   },
+   "propsBy": {
+    "TabsContent": {}
+   },
+   "textBy": {
+    "TabsContent": {}
+   },
+   "sigs": {
+    "TabsContent": {
+     "{\"p\":[],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Analytics": {
+   "count": 1,
+   "module": null,
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TabsContent": 1
+   },
+   "propsBy": {
+    "TabsContent": {}
+   },
+   "textBy": {
+    "TabsContent": {}
+   },
+   "sigs": {
+    "TabsContent": {
+     "{\"p\":[],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "Reports": {
+   "count": 1,
+   "module": null,
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "TabsContent": 1
+   },
+   "propsBy": {
+    "TabsContent": {}
+   },
+   "textBy": {
+    "TabsContent": {}
+   },
+   "sigs": {
+    "TabsContent": {
+     "{\"p\":[],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "RevenueChart": {
+   "count": 1,
+   "module": null,
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "CardContent": 1
+   },
+   "propsBy": {
+    "CardContent": {}
+   },
+   "textBy": {
+    "CardContent": {}
+   },
+   "sigs": {
+    "CardContent": {
+     "{\"p\":[],\"t\":\"\"}": 1
+    }
+   }
+  },
+  "FormDescription": {
+   "count": 1,
+   "module": "@/components/ui/form",
+   "props": {},
+   "text": {
+    "We never share it.": 1
+   },
+   "seqs": {
+    "FormItem": {
+     "": 1
+    }
+   },
+   "wrapper": {},
+   "render": null,
+   "byParent": {
+    "FormItem": 1
+   },
+   "propsBy": {
+    "FormItem": {}
+   },
+   "textBy": {
+    "FormItem": {
+     "We never share it.": 1
+    }
+   },
+   "content": 1,
+   "sigs": {
+    "FormItem": {
+     "{\"p\":[],\"t\":\"We never share it.\"}": 1
+    }
+   }
+  }
+ }
+}
