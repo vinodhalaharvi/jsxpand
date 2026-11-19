@@ -1,4 +1,5 @@
-import { Expander, type Model, type PreviewNode } from "../src/engine.js";
+import { Expander, type Model } from "../src/engine.js";
+import { renderReal, sweep } from "./real";
 import modelJson from "../src/model.json";
 import corpus from "../src/corpus.json";
 
@@ -17,80 +18,6 @@ function hl(code: string): string {
       str ? `<span class="str">${str}</span>` :
       kw ? `<span class="kw">${kw}</span>` : m,
   );
-}
-
-// ---------- A small look-alike preview of the components ----------
-
-const el = (tag: string, cls = "", text = ""): HTMLElement => {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
-  return e;
-};
-
-/** Draws one expansion with plain HTML styled after the usual look of these components. */
-function preview(nodes: PreviewNode[]): HTMLElement {
-  const box = el("div", "pv");
-  const draw = (n: PreviewNode, into: HTMLElement, i: number): void => {
-    const p = n.props;
-    const kids = (e: HTMLElement) => n.kids.forEach((k, j) => draw(k, e, j));
-    const variant = (base: string) => `${base} ${base}-${p.variant ?? "default"}${p.size === "sm" ? " pv-sm" : ""}`;
-    let e: HTMLElement;
-    switch (n.name) {
-      case "Card": e = el("div", "pv-card"); break;
-      case "CardHeader": case "DialogHeader": e = el("div", "pv-head"); break;
-      case "CardTitle": case "DialogTitle": e = el("div", "pv-title", n.text || "Title"); break;
-      case "CardDescription": case "DialogDescription": case "FormDescription": e = el("div", "pv-desc", n.text || "Description"); break;
-      case "CardContent": e = el("div", "pv-content"); break;
-      case "CardFooter": case "DialogFooter": e = el("div", "pv-foot"); break;
-      case "Button": e = el("span", variant("pv-btn"), n.text || "Button"); break;
-      case "Badge": e = el("span", variant("pv-badge"), n.text || "Badge"); break;
-      case "Label": case "FormLabel": e = el("div", "pv-label", n.text || "Label"); break;
-      case "Input": {
-        e = el("div", "pv-input");
-        const t = p.type === "password" ? "••••••••" : p.type === "file" ? "Choose file   No file chosen" : (p.placeholder ?? p.defaultValue ?? "");
-        e.textContent = t;
-        if (!p.defaultValue && p.type !== "password") e.classList.add("pv-ph");
-        break;
-      }
-      case "Textarea": e = el("div", "pv-input pv-area pv-ph", p.placeholder ?? ""); break;
-      case "Switch": e = el("span", "pv-switch"); break;
-      case "Avatar": e = el("span", "pv-avatar"); { const f = n.kids.find((k) => k.name === "AvatarFallback"); e.textContent = (f?.text && f.text !== "Fallback" ? f.text : "AB").slice(0, 2); } into.appendChild(e); return;
-      case "Dialog": e = el("div", "pv-dialog"); break;
-      case "DialogTrigger": e = el("div", "pv-trigger"); break;
-      case "DialogContent": e = el("div", "pv-modal"); e.appendChild(el("span", "pv-x", "×")); break;
-      case "Form": case "FormField": case "FormControl": e = el("div", "pv-stack"); break;
-      case "FormItem": e = el("div", "pv-item"); break;
-      case "FormMessage": return;
-      case "Table": {
-        e = el("table", "pv-table");
-        const cap = n.kids.find((k) => k.name === "TableCaption");
-        n.kids.filter((k) => k !== cap).forEach((k, j) => draw(k, e, j));
-        if (cap) e.appendChild(el("caption", "", cap.text || "Caption"));
-        into.appendChild(e);
-        return;
-      }
-      case "TableHeader": e = el("thead"); break;
-      case "TableBody": e = el("tbody"); break;
-      case "TableRow": e = el("tr"); break;
-      case "TableHead": e = el("th", "", n.text || "Head"); break;
-      case "TableCell": e = el("td", "", n.text || "—"); break;
-      case "Tabs": e = el("div", "pv-tabs"); break;
-      case "TabsList": e = el("div", "pv-tablist"); break;
-      case "TabsTrigger": e = el("span", "pv-tab" + (i === 0 ? " on" : ""), n.text || p.value || "Tab"); break;
-      case "TabsContent": if (n.kids.length === 0 || i > 1) { if (i > 1) return; } e = el("div", "pv-tabbody"); if (i > 1) return; break;
-      case "Select": e = el("div", "pv-stack"); break;
-      case "SelectTrigger": e = el("div", "pv-input pv-select"); break;
-      case "SelectValue": e = el("span", "pv-ph", p.placeholder ?? "Select"); break;
-      case "SelectContent": e = el("div", "pv-menu"); break;
-      case "SelectItem": e = el("div", "pv-opt", n.text || p.value || "Item"); break;
-      default: e = el("div", "pv-generic", n.name + (n.text ? `: ${n.text}` : ""));
-    }
-    kids(e);
-    into.appendChild(e);
-  };
-  nodes.forEach((n, i) => draw(n, box, i));
-  return box;
 }
 
 /** Ways to cut n letters into pieces of 2 to 14 letters: the tiling count, before any piece has to mean anything. */
@@ -121,6 +48,7 @@ function run(): void {
     : "Type something to see the counts for it.";
   const out = $("#results");
   out.innerHTML = "";
+  sweep();
   e.results.forEach((r, i) => {
     const card = document.createElement("section");
     card.className = "result" + (i === 0 ? " best" : "");
@@ -137,7 +65,7 @@ function run(): void {
       <div class="pvslot"></div>
       <pre><code>${hl(full)}</code></pre>
       <details${i === 0 ? " open" : ""}><summary>Why</summary><ul class="why">${why}</ul>${filled ? `<p class="fl">Filled in from your code:</p><ul class="why">${filled}</ul>` : ""}</details>`;
-    (card.querySelector(".pvslot") as HTMLElement).appendChild(preview(r.preview));
+    renderReal(card.querySelector(".pvslot") as HTMLElement, r.preview);
     (card.querySelector(".copy") as HTMLButtonElement).onclick = (ev) => {
       navigator.clipboard?.writeText(full).catch(() => undefined);
       (ev.target as HTMLButtonElement).textContent = "Copied";
