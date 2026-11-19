@@ -6,6 +6,12 @@ import { join, resolve } from "node:path";
 import { Expander, type Model } from "../src/engine.js";
 import { modelFor } from "../vscode/src/project.js";
 
+// Real projects to test against: clone them side by side and install their dependencies
+//   git clone https://github.com/satnaing/shadcn-admin && (cd shadcn-admin && npm install)
+//   git clone https://github.com/shadcn-ui/taxonomy && (cd taxonomy && npm install --ignore-scripts --legacy-peer-deps)
+// then run with JSXPAND_PROJECTS=<that folder>. Without it these tests are skipped.
+const REAL = process.env.JSXPAND_PROJECTS ?? "/nonexistent";
+
 const APP = resolve("test/fixtures/exports-app");
 
 describe("a project's exports", () => {
@@ -44,15 +50,15 @@ describe("a project's exports", () => {
   });
 });
 
-describe.skipIf(!existsSync("/home/claude/real/taxonomy/node_modules"))("nothing from anywhere else", () => {
+describe.skipIf(!existsSync(`${REAL}/taxonomy/node_modules`))("nothing from anywhere else", () => {
   it("a small project's suggestions carry no other project's text or classes", () => {
-    const x = new Expander(modelFor("/home/claude/real/taxonomy") as unknown as Model);
+    const x = new Expander(modelFor(`${REAL}/taxonomy`) as unknown as Model);
     const code = ["cardhdrttlcont", "tabs>list>trig*3^cont", "frm>eml+btn"].flatMap((q) => x.expand(q, 3, ["DashboardShell"]).results.map((r) => r.file)).join("\n");
     // shadcn-admin's dashboard text, which a built-in layer used to bring in
     for (const s of ["Total Clicks", "1,248", "+12.4% vs last week", "Overview", "Analytics"]) expect(code, s).not.toContain(s);
   }, 300_000);
   it("never-used components of the project are offered when spelled out", () => {
-    const x = new Expander(modelFor("/home/claude/real/taxonomy") as unknown as Model);
+    const x = new Expander(modelFor(`${REAL}/taxonomy`) as unknown as Model);
     expect(x.expand("select", 3, ["DashboardShell"]).results[0]?.code).toMatch(/^<Select/);
     expect(x.expand("dlgportal", 3, ["DashboardShell"]).results[0]?.code).toMatch(/^<DialogPortal/);
   }, 300_000);

@@ -6,9 +6,19 @@
   "publisher": "vhalaharvi",
   "author": "Vinod Halaharvi",
   "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#111827",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vinodhalaharvi/jsxpand"
+    "url": "https://github.com/vinodhalaharvi/jsxpand",
+    "directory": "vscode"
+  },
+  "homepage": "https://github.com/vinodhalaharvi/jsxpand#readme",
+  "bugs": {
+    "url": "https://github.com/vinodhalaharvi/jsxpand/issues"
   },
   "engines": {
     "vscode": "^1.90.0"

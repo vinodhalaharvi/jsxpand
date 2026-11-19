@@ -1,14 +1,22 @@
 {
   "name": "jsxpand",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.2.0",
+  "description": "Type an abbreviation, get the JSX your own codebase would write: learned from your project with generating functions and dynamic programming.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "learn": "node src/learn.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "react",
+    "jsx",
+    "tsx",
+    "emmet",
+    "abbreviation",
+    "completion",
+    "dynamic-programming"
+  ],
+  "author": "Vinod Halaharvi",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
@@ -56,5 +64,10 @@
     "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.5",
     "tw-animate-css": "^1.4.0"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vinodhalaharvi/jsxpand"
   }
 }

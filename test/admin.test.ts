@@ -7,7 +7,13 @@ import { join, resolve } from "node:path";
 import { Expander, type Model } from "../src/engine.js";
 import modelJson from "../src/model-admin.json" with { type: "json" };
 
-const PROJECT = "/home/claude/real/shadcn-admin";
+// Real projects to test against: clone them side by side and install their dependencies
+//   git clone https://github.com/satnaing/shadcn-admin && (cd shadcn-admin && npm install)
+//   git clone https://github.com/shadcn-ui/taxonomy && (cd taxonomy && npm install --ignore-scripts --legacy-peer-deps)
+// then run with JSXPAND_PROJECTS=<that folder>. Without it these tests are skipped.
+const REAL = process.env.JSXPAND_PROJECTS ?? "/nonexistent";
+
+const PROJECT = `${REAL}/shadcn-admin`;
 const x = new Expander(modelJson as unknown as Model);
 const inputs = [
   "tabs>list>trig*3^cont", "cardhdrttlcont", "card*4", "ddmtrigbtncontitm*3", "frm>usr+eml+btn", "frmemlbtn", "dlg>cont>hdr+ftr>btn",

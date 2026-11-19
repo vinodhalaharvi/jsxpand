@@ -8,7 +8,13 @@ import { Expander, type Model } from "../src/engine.js";
 import { apply, edits, locate } from "../vscode/src/insert.js";
 import { detectAlias, modelFor, projectConfig, sourceDir } from "../vscode/src/project.js";
 
-const ROOT = "/home/claude/real/shadcn-admin";
+// Real projects to test against: clone them side by side and install their dependencies
+//   git clone https://github.com/satnaing/shadcn-admin && (cd shadcn-admin && npm install)
+//   git clone https://github.com/shadcn-ui/taxonomy && (cd taxonomy && npm install --ignore-scripts --legacy-peer-deps)
+// then run with JSXPAND_PROJECTS=<that folder>. Without it these tests are skipped.
+const REAL = process.env.JSXPAND_PROJECTS ?? "/nonexistent";
+
+const ROOT = `${REAL}/shadcn-admin`;
 
 describe("locate", () => {
   const at = (src: string) => locate(src.replace("|", ""), src.indexOf("|"));
@@ -53,7 +59,7 @@ const PROJECTS: { root: string; cases: [string, string, string][] }[] = [
   },
   {
     // Next.js, no src/, "@/*" → "./*", a small project
-    root: "/home/claude/real/taxonomy",
+    root: `${REAL}/taxonomy`,
     cases: [
       ["app/(dashboard)/dashboard/page.tsx", "<DashboardShell>", "cardhdrttlcont"],
       ["app/(dashboard)/dashboard/page.tsx", "<DashboardShell>", "tabs>list>trig*3^cont"],
@@ -112,7 +118,7 @@ describe.skipIf(!existsSync(join(ROOT, "node_modules")))("project settings", () 
   it("reads each project's alias and source folder", () => {
     expect(detectAlias(ROOT)).toEqual({ prefix: "@/", target: join(ROOT, "src") });
     expect(sourceDir(ROOT)).toBe(join(ROOT, "src"));
-    expect(detectAlias("/home/claude/real/taxonomy")).toEqual({ prefix: "@/", target: "/home/claude/real/taxonomy" });
-    expect(sourceDir("/home/claude/real/taxonomy")).toBe("/home/claude/real/taxonomy");
+    expect(detectAlias(`${REAL}/taxonomy`)).toEqual({ prefix: "@/", target: `${REAL}/taxonomy` });
+    expect(sourceDir(`${REAL}/taxonomy`)).toBe(`${REAL}/taxonomy`);
   });
 });
