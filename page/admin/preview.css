@@ -1,0 +1,4 @@
+@import "../../real-ui/src/styles/index.css";
+@source "../../real-ui/src/components/ui";
+@source "../../src/model-admin.json";
+@source "./render.tsx";

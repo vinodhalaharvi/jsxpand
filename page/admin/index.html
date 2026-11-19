@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboards from abbreviations</title>
+<style>
+  :root { color-scheme: light dark; --ink:#1c1c1a; --muted:#6b6a65; --line:#e1dfd8; --bg:#faf9f6; --card:#fff; --accent:#2a78d6; --tag:#b4410f; --attr:#6250d6; --str:#0f7a52; --kw:#a3266b; --codebg:#f4f2ec; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#ecebe6; --muted:#9c9a92; --line:#33322e; --bg:#131312; --card:#1b1b19; --accent:#5b9be6; --tag:#f0915e; --attr:#a99df0; --str:#5fd0a0; --kw:#ec8fbf; --codebg:#171715; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .lede { color: var(--muted); margin: 0 0 18px; }
+  #q { width: 100%; font: 500 22px/1.2 ui-monospace, "SF Mono", Menlo, monospace; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); outline: none; }
+  #q:focus { border-color: var(--accent); }
+  .exs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; }
+  .ex { font: 13px ui-monospace, Menlo, monospace; padding: 4px 9px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+  .ex:hover { border-color: var(--accent); }
+  .syntax { color: var(--muted); font-size: 13px; margin: 4px 0 14px; }
+  .syntax code { font-size: 12.5px; }
+  #stats { color: var(--muted); font-size: 13.5px; min-height: 20px; margin-bottom: 10px; }
+  #stats b { color: var(--ink); font-weight: 600; }
+  .result { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+  .result.best { border-color: var(--accent); }
+  .head { display: flex; align-items: center; gap: 10px; }
+  .rank { font-weight: 600; font-size: 14px; min-width: 64px; }
+  .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--accent); }
+  .pct { font: 13px ui-monospace, Menlo, monospace; color: var(--muted); min-width: 52px; text-align: right; }
+  .copy { font: inherit; font-size: 12.5px; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+  pre { background: var(--codebg); border-radius: 8px; padding: 12px 14px; overflow-x: auto; margin: 10px 0 8px; font: 13px/1.5 ui-monospace, "SF Mono", Menlo, monospace; }
+  .tag { color: var(--tag); } .attr { color: var(--attr); } .str { color: var(--str); } .kw { color: var(--kw); }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13.5px; }
+  .why { margin: 6px 0 4px; padding-left: 18px; font-size: 13.5px; }
+  .why li { margin: 2px 0; } .why li.sub { list-style: none; color: var(--muted); margin-left: -2px; }
+  .fl { margin: 8px 0 0; font-size: 13.5px; color: var(--muted); }
+  .panel { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .panel h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+  .panel p, .panel li { font-size: 14px; }
+  table { border-collapse: collapse; font-size: 13.5px; margin: 8px 0; width: 100%; }
+  td, th { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { font-weight: 600; }
+  #gf { background: var(--codebg); border-radius: 8px; padding: 10px 12px; font-size: 13.5px; }
+  .pvslot { margin-top: 10px; }
+  #stats.busy { opacity: .55; }
+  .result details { margin-top: 8px; }
+  a { color: var(--accent); }
+  #files details { border-bottom: 1px solid var(--line); padding: 6px 0; }
+  #files pre { max-height: 360px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dashboards from abbreviations</h1>
+  <p class="lede">Learned from <a href="https://github.com/satnaing/shadcn-admin">shadcn-admin</a>, an open-source admin dashboard. Type a few letters; get a whole component the way that codebase writes it, drawn with its own components.</p>
+  <input id="q" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Abbreviation">
+  <div class="exs">
+    <button class="ex">tabs>list>trig*3^cont</button>
+    <button class="ex">cardhdrttlcont</button>
+    <button class="ex">ddmtrigbtncontitm*3</button>
+    <button class="ex">frm>usr+eml+btn</button>
+    <button class="ex">dlgtrigbtnhdrftr</button>
+    <button class="ex">sheettrigbtn</button>
+    <button class="ex">avtrbdg</button>
+    <button class="ex">tbl>hdr>row>head*4</button>
+    <button class="ex">sel>trig^cont>itm*3</button>
+  </div>
+  <p class="syntax">Letters run together are split for you. Optional: <code>&gt;</code> child, <code>+</code> sibling, <code>^</code> up a level, <code>.value</code> a prop value (<code>btn.out</code> → <code>variant="outline"</code>), <code>*3</code> repeat.</p>
+  <div id="stats"></div>
+  <div id="results"></div>
+
+  <div class="panel">
+    <h2>Behind the scenes</h2>
+    <p>Reading the input left to right is a grammar with one rule, <code>Read ::= ε | Piece Read</code>: the same shape as tiling a strip with tiles of different lengths, whose generating function is a fraction like the Fibonacci one.</p>
+    <div id="gf"></div>
+    <p>Each piece is scored by three learned numbers multiplied together:</p>
+    <table>
+      <tr><th>Factor</th><th>What it is</th><th>Example</th></tr>
+      <tr><td>Abbreviation</td><td>How likely a typist writes these letters for that name: the first letter kept, others kept or dropped, the end of a word cheap to leave off.</td><td><code>hdr</code> from Header</td></tr>
+      <tr><td>Placement</td><td>How often that component sits inside the open parent in this code: the learned transition.</td><td>CardHeader in Card: 11 of 29</td></tr>
+      <tr><td>Wrapper</td><td>When the component never sits there directly, the usual in-between component, at a cost.</td><td>Button in Card → via CardFooter</td></tr>
+    </table>
+    <p>The search is the <code>dyna</code> package: one coalgebra (every way to read the next piece) folded with three semirings at once.</p>
+    <table>
+      <tr><th>Semiring</th><th>Gives</th></tr>
+      <tr><td>(max, +) on log-probabilities, kept best three</td><td>The ranked expansions: Viterbi</td></tr>
+      <tr><td>(+, ×) on counts</td><td>How many readings there are</td></tr>
+      <tr><td>(+, ×) on probabilities</td><td>Their total, so each result shows its share</td></tr>
+    </table>
+    <p>A subproblem is "this much text read, these components still open", so a reading that reaches the same point the same way is solved once, not again for every way of getting there.</p>
+  </div>
+
+  <div class="panel">
+    <h2>What it learned from</h2>
+    <p id="learned" style="color:var(--muted)"></p>
+    <p>All of <a href="https://github.com/satnaing/shadcn-admin">shadcn-admin</a>'s pages and app components, read with the TypeScript parser: which component sits inside which, the props and text written together, how each hook and handler is declared, and the zod definition of each form field. The previews use its own <code>components/ui</code> and theme. shadcn-admin is © 2024 Sat Naing, MIT License.</p>
+  </div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

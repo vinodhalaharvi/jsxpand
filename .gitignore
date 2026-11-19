@@ -1,4 +1,7 @@
 node_modules/
 page/app.js
 page/preview.built.css
+page/admin/*.js
+page/admin/preview.built.css
 test/.gen/
+test/.gen-admin/

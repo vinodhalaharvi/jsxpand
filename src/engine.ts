@@ -32,9 +32,25 @@ export interface CompStat {
   sigs?: Record<string, Record<string, number>>;
   /** uses with text or an expression inside */
   content?: number;
+  /** props its type requires */
+  required?: string[];
+  /** its type has no children */
+  leaf?: boolean;
+  typed?: boolean;
+  /** the name the module exports it under, when imported renamed; "default" for a default import */
+  as?: string;
+  /** family members seen above it, and how often: SelectTrigger is inside Select in every use */
+  within?: Record<string, number>;
+  /** uses written self-closing, with nothing inside */
+  empty?: number;
+  /** per parent: the inside of each use as data, grouped by its shape */
+  skels?: Record<string, Record<string, { n: number; sample: SkelItem[] }>>;
 }
+/** What sits inside a use: text, a component, or a lowercase element with its props and children. */
+export type SkelItem = { t: string } | { c: string } | { tag: string; a: [string, string][]; k: SkelItem[] };
+
 /** One way a name is declared: a module const or type, a prop, or a statement in a component body. */
-export interface DeclVariant { n: number; uses: string[]; imports: Record<string, string>; pos: number }
+export interface DeclVariant { n: number; uses: string[]; imports: Record<string, string>; pos: number; fromProps?: string[] }
 export interface Decl { kind: "module" | "local" | "prop"; declares: string[]; variants: Record<string, DeclVariant> }
 
 export interface Model {
@@ -47,6 +63,8 @@ export interface Model {
   imports?: Record<string, string>;
   /** the names each learned prop expression reads: {form.handleSubmit(onSubmit)} → form, onSubmit */
   exprUses?: Record<string, string[]>;
+  /** where the file an expression came from imported each name it reads */
+  exprImports?: Record<string, Record<string, string>>;
   /** zod definitions seen for each form field name */
   fields?: Record<string, Record<string, number>>;
 }
@@ -125,9 +143,16 @@ export class Expander {
   private readonly total: Record<string, number> = {};
   private readonly hasKids: Record<string, number> = {};
   private readonly matchCache = new Map<string, Match[]>();
+  private readonly nameSet: Set<string>;
+  /** for each component, the components seen directly holding it */
+  private readonly holders = new Map<string, string[]>();
+  private readonly childCache = new Map<string, number>();
+  private readonly candCache = new Map<string, Match[]>();
 
-  constructor(readonly model: Model, readonly opts = { alpha: 0.5, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, perChunk: 5, minAbbrev: Math.log(2e-4), maxOpen: 4 }) {
+  constructor(readonly model: Model, readonly opts = { alpha: 0.5, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
     this.names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
+    this.nameSet = new Set(this.names);
+    for (const [p, e] of Object.entries(model.edges)) for (const c of Object.keys(e)) if (this.nameSet.has(p)) this.holders.set(c, [...(this.holders.get(c) ?? []), p]);
     const sum = this.names.reduce((a, c) => a + (model.comps[c]?.count ?? 0), 0);
     for (const c of this.names) this.prior[c] = ((model.comps[c]?.count ?? 0) + 1) / (sum + this.names.length);
     for (const [p, e] of Object.entries(model.edges)) this.total[p] = Object.values(e).reduce((a, b) => a + b, 0);
@@ -143,7 +168,19 @@ export class Expander {
 
   /** P(child | parent): observed share, smoothed toward overall frequency, times the chance parent has children at all. */
   childP(parent: string, child: string): number {
+    const key = parent + ">" + child;
+    const hit = this.childCache.get(key);
+    if (hit !== undefined) return hit;
+    const v = this.childP0(parent, child);
+    this.childCache.set(key, v);
+    return v;
+  }
+
+  private childP0(parent: string, child: string): number {
     const e = this.model.edges[parent]?.[child] ?? 0;
+    // the types say it takes no children (ThemeSwitch): nothing goes inside
+    if (this.model.comps[parent]?.leaf && !e) return 1e-12;
+
     const t = this.total[parent] ?? 0;
     const { alpha } = this.opts;
     return (this.hasKids[parent] ?? 0.01) * (e + alpha * (this.prior[child] ?? 0)) / (t + alpha);
@@ -171,6 +208,7 @@ export class Expander {
       // FormField with name="password", "dstr" a Button with variant="destructive".
       const st = this.model.comps[c] as CompStat;
       for (const [prop, ps2] of Object.entries(st.props)) {
+        if (!VALUE_PROPS(prop)) continue;
         for (const [raw, n] of Object.entries(ps2.vals)) {
           const m = /^"([a-z][a-z-]{2,})"$/i.exec(raw);
           if (!m) continue;
@@ -181,9 +219,48 @@ export class Expander {
       }
     }
     // the few components this piece reads best as: the rest would never win
-    const kept = out.filter((m) => m.logp >= this.opts.minAbbrev).sort((a, b) => b.logp - a.logp).slice(0, this.opts.perChunk);
+    const kept = out.filter((m) => m.logp >= this.opts.minAbbrev);
     this.matchCache.set(chunk, kept);
     return kept;
+  }
+
+  /**
+   * The few readings of a piece worth following under a given parent: ranked by
+   * the letters, the name parts the parent implies, and how well the component
+   * fits there (directly or through its usual wrapper). "cont" under Tabs keeps
+   * TabsContent; under a form field it keeps FormControl.
+   */
+  candidates(chunk: string, parent: string): Match[] {
+    const key = chunk + "|" + parent;
+    const hit = this.candCache.get(key);
+    if (hit) return hit;
+    const score = (m: Match) => m.logp + this.dropLogP(m.dropped, parent) + Math.log(this.bestPlace(parent, m.comp));
+    const all = this.matches(chunk).map((m) => [m, score(m)] as const).filter(([, s]) => s > -Infinity).sort((a, b) => b[1] - a[1]);
+    const top = all[0]?.[1] ?? 0;
+    const kept = all.filter(([, s]) => s >= top + this.opts.matchSpread).slice(0, this.opts.perChunk).map(([m]) => m);
+    this.candCache.set(key, kept);
+    return kept;
+  }
+
+  /**
+   * The family member a component is always found inside (SelectTrigger → Select,
+   * TooltipTrigger → Tooltip): outside it, it fails at runtime.
+   */
+  required(comp: string): string | null {
+    const st = this.model.comps[comp];
+    if (!st || st.count < 2) return null;
+    let best: string | null = null;
+    // inside it every time, or nearly (one odd use in fifty does not make it optional)
+    for (const [a, n] of Object.entries(st.within ?? {})) if ((n === st.count || (st.count >= 5 && n / st.count >= 0.95)) && (!best || a.length < best.length)) best = a;
+    return best;
+  }
+
+  /** How well a component fits under a parent: directly, or through the best usual wrapper. */
+  bestPlace(parent: string, comp: string): number {
+    let best = this.childP(parent, comp);
+    const here = this.model.edges[parent] ?? {};
+    for (const w of this.holders.get(comp) ?? []) if (w !== comp && (here[w] ?? 0)) best = Math.max(best, this.childP(parent, w) * this.childP(w, comp) * this.opts.wrapperCost);
+    return best;
   }
 
   /** The prop value of a component that `typed` abbreviates best, like "out" → variant="outline". */
@@ -192,6 +269,7 @@ export class Expander {
     let best: { set: { prop: string; value: string }; logp: number } | null = null;
     for (const [prop, ps] of Object.entries(st.props))
       for (const raw of Object.keys(ps.vals)) {
+        if (!VALUE_PROPS(prop)) continue;
         const m = /^"([a-z][a-z0-9-]*)"$/i.exec(raw);
         if (!m) continue;
         const lp = abbrevLogP(typed, (m[1] as string).toLowerCase().replace(/-/g, ""));
@@ -219,6 +297,11 @@ export class Expander {
       let only: number | null = null;
       if (text[i] === ">") { only = 0; i++; }
       else if (text[i] === "+") { only = 1; i++; }
+      else if (text[i] === "^") {
+        // each ^ climbs one more level, as in Emmet: "list>trig^cont" puts cont beside list
+        only = 1;
+        while (text[i] === "^") { only++; i++; }
+      }
       const out: Node<Step, string>[] = [];
       const L = path.length;
       const ups: number[] = [];
@@ -235,23 +318,31 @@ export class Expander {
         if (mod) next += mod[0].length;
         const rep = /^\*(\d+)/.exec(text.slice(next));
         if (rep) { repeat = Math.max(1, Math.min(20, Number(rep[1]))); next += rep[0].length; }
-        for (const m0 of this.matches(chunk)) {
-          let m = m0;
-          if (mod) {
-            if (m0.set) continue;
-            const v = this.valueMatch(m0.comp, mod[1] as string);
-            if (!v) continue;
-            m = { ...m0, logp: m0.logp + v.logp, set: v.set };
-          }
-          for (const up of ups) {
-            const parent = up >= L ? ROOT : (path[L - 1 - up] as string);
+        for (const up of ups) {
+          const parent = up >= L ? ROOT : (path[L - 1 - up] as string);
+          for (const m0 of this.candidates(chunk, parent)) {
+            let m = m0;
+            if (mod) {
+              if (m0.set) continue;
+              const v = this.valueMatch(m0.comp, mod[1] as string);
+              if (!v) continue;
+              m = { ...m0, logp: m0.logp + v.logp, set: v.set };
+            }
             // a second component at the top makes a fragment: possible, but rarely meant
             const attach = Math.log(Math.pow(this.opts.upDecay, up) / z) + (parent === ROOT && L > 0 ? Math.log(this.opts.rootSibling) : 0);
             const kept = path.slice(0, L - up);
             const step = (wrapper: string | null, place: number, under: string): void => {
+              // a part of a compound component needs its family above it
+              const need = this.required(m.comp);
+              if (need && wrapper !== need && !kept.includes(need)) return;
+              // and so does a wrapper slipped in for it (FormControl only works inside a Form)
+              const wneed = wrapper ? this.required(wrapper) : null;
+              if (wneed && !kept.includes(wneed)) return;
               const dl = this.dropLogP(m.dropped, under);
               if (dl === -Infinity) return;
               const logp = m.logp + dl + place + attach;
+              // a step this unlikely never makes the best few, and leaving it out keeps the search small
+              if (logp < this.opts.minStep) return;
               const label: Step = { end: false, chunk, comp: m.comp, parent, wrapper, up, repeat, set: m.set, logp, f: { abbrev: m.logp + dl, dropped: m.dropped, place, attach } };
               // only the innermost few open components can still take children
               const open = [...kept, ...(wrapper ? [wrapper] : []), m.comp].slice(-this.opts.maxOpen);
@@ -259,8 +350,9 @@ export class Expander {
             };
             step(null, Math.log(this.childP(parent, m.comp)), parent);
             // a usual child of the parent that usually holds this component
-            for (const [w, n] of Object.entries(this.model.edges[parent] ?? {})) {
-              if (w === m.comp || !this.names.includes(w) || n < 1) continue;
+            const here = this.model.edges[parent] ?? {};
+            for (const w of this.holders.get(m.comp) ?? []) {
+              if (w === m.comp || !(here[w] ?? 0)) continue;
               const via = this.childP(parent, w) * this.childP(w, m.comp) * this.opts.wrapperCost;
               if ((this.model.edges[w]?.[m.comp] ?? 0) > 0) step(w, Math.log(via), w);
             }
@@ -276,7 +368,7 @@ export class Expander {
    * total probability, and the best few, each rendered as JSX.
    */
   expand(text: string, k = 3): Expansion {
-    const t = text.toLowerCase().replace(/[^a-z0-9>+*.]/g, "");
+    const t = text.toLowerCase().replace(/[^a-z0-9>+*.^]/g, "");
     const best = topK<Step>(Math.max(8, k * 3), (l, kids) => (l.end ? 0 : l.logp + (kids[0] as number)));
     const total: GradedAlgebra<Step, number> = {
       zero: 0,
@@ -304,7 +396,7 @@ export class Expander {
   // ---------- Turning a reading into code ----------
 
   private render(steps: Step[]): Omit<Result, "prob" | "steps"> {
-    interface T { name: string; repeat: number; typed: boolean; kids: T[]; parent: string; set?: { prop: string; value: string } | null; hint?: string }
+    interface T { name: string; repeat: number; typed: boolean; kids: T[]; parent: string; set?: { prop: string; value: string } | null; hint?: string; tag?: boolean; attrs?: [string, string][]; text?: string }
     const root: T = { name: ROOT, repeat: 1, typed: true, kids: [], parent: "" };
     let path: T[] = [];
     for (const s of steps) {
@@ -325,40 +417,106 @@ export class Expander {
     }
     // fill in what a component almost always holds, when nothing was typed inside it
     const filled: string[] = [];
+    // a lowercase element and what it holds, as written in the code; components inside get filled in on their own
+    const fromSkel = (items: SkelItem[], parent: string): T[] => {
+      const out: T[] = [];
+      for (const it of items) {
+        if ("c" in it) { if (this.nameSet.has(it.c)) out.push({ name: it.c, repeat: 1, typed: false, kids: [], parent }); }
+        else if ("tag" in it) {
+          const texts = it.k.filter((x): x is { t: string } => "t" in x).map((x) => x.t);
+          const node: T = { name: it.tag, tag: true, attrs: it.a, text: texts.join(" "), repeat: 1, typed: false, kids: [], parent };
+          node.kids = fromSkel(it.k.filter((x) => !("t" in x)), parent);
+          out.push(node);
+        }
+      }
+      return out;
+    };
     const fill = (n: T, depth: number): void => {
-      if (n.kids.length === 0 && depth < 3 && n.name !== ROOT) {
+      if (n.tag) { for (const k of n.kids) fill(k, depth); return; }
+      if (n.kids.length === 0 && depth < 4 && n.name !== ROOT) {
+        const st = this.model.comps[n.name];
+        // first choice: the inside most often written for this component here, lowercase markup and all
+        // components that mostly hold text of their own (Button, CardTitle) are left to their usual text
+        const texty = st ? (st.content ?? 0) / st.count >= 0.5 : false;
+        const skels = st && !st.render && !texty ? pickSkels(st, n.parent) : {};
+        const totalUses = Object.values(skels).reduce((a, b) => a + b.n, 0);
+        const shapes = Object.entries(skels).filter(([k]) => k !== "[]" && !/^\["t"(,"t")*\]$/.test(k)).sort((a, b) => b[1].n - a[1].n);
+        const withInside = shapes.reduce((a, [, v]) => a + v.n, 0);
+        const neverEmptyS = (st?.empty ?? 0) === 0 && (st?.content ?? 0) === 0 && (st?.count ?? 0) > 1;
+        if (shapes[0] && totalUses > 0 && (withInside / totalUses >= 0.5 || neverEmptyS)) {
+          const [, best] = shapes[0];
+          n.kids = fromSkel(best.sample.filter((x) => !("t" in x)), n.name);
+          if (n.hint) for (const k of n.kids) k.hint = n.hint;
+          if (n.kids.length) filled.push(`${n.name}: filled with the inside written in ${best.n} of ${totalUses} uses`);
+        }
+      }
+      if (n.kids.length === 0 && depth < 4 && n.name !== ROOT && !n.tag) {
         const st = this.model.comps[n.name];
         const seqs = st?.render ? st.renderSeqs ?? {} : pickSeqs(st, n.parent);
         const tot = Object.values(seqs).reduce((a, b) => a + b, 0);
-        const [top, c] = Object.entries(seqs).sort((a, b) => b[1] - a[1])[0] ?? ["", 0];
-        if (top && tot > 0 && c / tot >= 0.5) {
-          for (const name of top.split(",")) if (this.names.includes(name)) n.kids.push({ name, repeat: 1, typed: false, kids: [], parent: n.name, ...(n.hint ? { hint: n.hint } : {}) });
+        // a component never written empty (FormControl wraps exactly one thing) gets its usual child even below half
+        // (never self-closing and never holding text of its own: what it holds is always an element)
+        const neverEmpty = (st?.empty ?? 0) === 0 && (st?.content ?? 0) === 0 && (st?.count ?? 0) > 1;
+        const ranked = Object.entries(seqs).filter(([k]) => k || !neverEmpty).sort((a, b) => b[1] - a[1]);
+        const [top, c] = ranked[0] ?? ["", 0];
+        if (top && tot > 0 && (c / tot >= 0.5 || neverEmpty)) {
+          for (const name of top.split(",")) if (this.nameSet.has(name)) n.kids.push({ name, repeat: 1, typed: false, kids: [], parent: n.name, ...(n.hint ? { hint: n.hint } : {}) });
           if (n.kids.length) filled.push(`${n.name} usually holds ${top.split(",").join(", ")} (${c} of ${tot}): added`);
         }
       }
       for (const k of n.kids) fill(k, n.typed ? 0 : depth + 1);
     };
     fill(root, 0);
+    const emitTag = (n: T, d: number, into: PreviewNode[]): void => {
+      const attrs = (n.attrs ?? []).filter(([k, v]) => k !== "key" && inScope(k, v) && !needsOutside(k, v));
+      for (const [, v] of attrs) useExpr(v);
+      const a = attrs.map(([k, v]) => (v === "true" ? k : `${k}=${v}`)).join(" ");
+      const open = `<${n.name}${a ? " " + a : ""}`;
+      const pv: PreviewNode = { name: n.name, props: Object.fromEntries(attrs.map(([k, v]) => [k, /^"/.test(v) ? (JSON.parse(v) as string) : v])), text: n.text ?? "", kids: [] };
+      into.push(pv);
+      if (!n.kids.length) {
+        lines.push(n.text ? `${pad(d)}${open}>${n.text}</${n.name}>` : `${pad(d)}${open} />`);
+        return;
+      }
+      lines.push(`${pad(d)}${open}>`);
+      if (n.text) lines.push(`${pad(d + 1)}${n.text}`);
+      emitAll(n.kids, d + 1, pv.kids);
+      lines.push(`${pad(d)}</${n.name}>`);
+    };
     const used: string[] = [];
     const lines: string[] = [];
     const preview: PreviewNode[] = [];
     const usedNames = new Set<string>();
+    // the names an expression reads, imported from where the code it came from imported them
+    const prefer: Record<string, string> = {};
+    const useExpr = (key: string, comp?: string) => {
+      for (const u of this.model.exprUses?.[key] ?? []) {
+        usedNames.add(u);
+        const from = (comp ? this.model.exprImports?.[comp + "|" + key]?.[u] : undefined) ?? this.model.exprImports?.[key]?.[u];
+        if (from && !(u in prefer)) prefer[u] = from;
+      }
+    };
     const bound = new Set<string>();
     const pad = (d: number) => "  ".repeat(d);
     // names a render prop hands its children ({ field }): usable only inside one
     const renderParams = new Set(Object.values(this.model.comps).flatMap((c) => (c.render ? c.render.params.replace(/[{}\s]/g, "").split(",").filter(Boolean) : [])));
     const scope = new Set<string>();
+    // does a prop read names that are neither in scope nor the usual form plumbing?
+    const plumbing = new Set(["form", "field"]);
+    const needsOutside = (k: string, v: string | null) => (this.model.exprUses?.[k.startsWith("...") ? k : (v ?? "")] ?? []).some((u) => !plumbing.has(u) && !(u in (this.model.imports ?? {})));
     const inScope = (k: string, v: string | null) => (this.model.exprUses?.[k.startsWith("...") ? k : (v ?? "")] ?? []).every((u) => !renderParams.has(u) || scope.has(u));
     const emit = (n: T, d: number, nth0 = 0, into: PreviewNode[] = preview): void => {
+      if (n.tag) { emitTag(n, d, into); return; }
       if (!used.includes(n.name)) used.push(n.name);
       const st = this.model.comps[n.name] as CompStat;
       for (let r = 0; r < n.repeat; r++) {
-      const use = propsFor(st, n.parent, n.set ?? null, n.hint, nth0 + r, inScope);
+      const use = propsFor(st, n.parent, n.set ?? null, n.hint, nth0 + r, inScope, needsOutside);
       const attrs = use.attrs;
       const open = `<${n.name}${attrs ? " " + attrs : ""}`;
       // the text seen with those props, unless it is a one-off title: then a placeholder
-      const text = use.text && (textCount(st, use.text) >= 2 || st.count <= 2 || nth0 + r > 0 || (n.hint && use.text.toLowerCase() === n.hint.toLowerCase())) ? use.text : textFor(st, n.parent, n.name, n.hint);
-      for (const [k, v] of use.pairs) for (const u of this.model.exprUses?.[k.startsWith("...") ? k : v] ?? []) usedNames.add(u);
+      // the text written with those props in the code, else a placeholder when it usually has text
+      const text = use.text || textFor(st, n.parent, n.name, n.hint);
+      for (const [k, v] of use.pairs) useExpr(k.startsWith("...") ? k : v, n.name);
       const pv: PreviewNode = { name: n.name, props: Object.fromEntries(use.pairs.map(([k, v]) => [k, /^"/.test(v) ? (JSON.parse(v) as string) : v])), text, kids: [] };
       into.push(pv);
         if (st.render) {
@@ -384,11 +542,13 @@ export class Expander {
           continue;
         }
         lines.push(`${pad(d)}${open}>`);
-        const wrap = topOf(st.wrapper, 0.5);
+        // a lowercase element wraps the children in at least half of all uses, not just of the wrapped ones
+        const wrapTop = topOf(st.wrapper, 0);
+        const wrap = wrapTop && (st.wrapper[wrapTop] ?? 0) / st.count >= 0.5 ? wrapTop : null;
         const inner = wrap ? d + 2 : d + 1;
         if (wrap) {
           lines.push(`${pad(d + 1)}${wrap}`);
-          for (const u of this.model.exprUses?.[wrap] ?? []) usedNames.add(u);
+          useExpr(wrap);
         }
         emitAll(n.kids, inner, pv.kids);
         if (wrap) lines.push(`${pad(d + 1)}</${/^<([a-z0-9]+)/.exec(wrap)?.[1]}>`);
@@ -411,11 +571,13 @@ export class Expander {
     const byModule = new Map<string, string[]>();
     for (const n of used) {
       const m = this.model.comps[n]?.module;
-      if (m) byModule.set(m, [...(byModule.get(m) ?? []), n]);
+      const as = this.model.comps[n]?.as;
+      const key = as === "default" ? "default:" + m : m;
+      if (m) byModule.set(key, [...(byModule.get(key) ?? []), as && as !== "default" ? `${as} as ${n}` : n]);
     }
-    const imports = [...byModule].map(([m, ns]) => `import { ${ns.join(", ")} } from "${m}";`);
+    const imports = mergeImports(byModule, {});
     const fields = collectFields(preview);
-    const comp = this.complete([...usedNames].filter((u) => !bound.has(u)), fields);
+    const comp = this.complete([...usedNames].filter((u) => !bound.has(u)), fields, prefer);
     const allImports = mergeImports(byModule, comp.imports);
     const name = `${tops[0]?.name ?? "My"}Example`;
     const sigText = comp.props.length ? `{ ${comp.props.map((p) => p.name).join(", ")} }: { ${comp.props.map((p) => `${p.name}: ${p.type}`).join("; ")} }` : "";
@@ -440,16 +602,20 @@ export class Expander {
    * turn (form needs formSchema, which needs z). A name nobody declares becomes
    * a prop. Effects come along when everything they touch is already declared.
    */
-  complete(names: string[], fields: string[]): { module: string[]; local: string[]; props: { name: string; type: string }[]; imports: Record<string, string>; why: string[] } {
+  complete(names: string[], fields: string[], prefer: Record<string, string> = {}): { module: string[]; local: string[]; props: { name: string; type: string }[]; imports: Record<string, string>; why: string[] } {
     const decls = this.model.decls ?? {};
-    const known = this.model.imports ?? {};
+    const known: Record<string, string> = { ...this.model.imports };
+    for (const [n, from] of Object.entries(prefer)) if (from === "@local") delete known[n]; else known[n] = from;
     const chosen = new Map<string, { key: string; d: Decl; text: string; v: DeclVariant }>();
     const props: { name: string; type: string }[] = [];
     const imports: Record<string, string> = {};
     const why: string[] = [];
+    // the usual declaration of a name, skipping ones that declare a crowd of other names
+    // (const { title, desc, form, ... } = props) or something already declared
     const declaredBy = (name: string) =>
       Object.entries(decls)
-        .filter(([k, d]) => d.kind !== "prop" && !k.startsWith("effect:") && d.declares.includes(name))
+        .filter(([k, d]) => d.kind !== "prop" && !k.startsWith("effect:") && d.declares.includes(name) && d.declares.length <= 3)
+        .filter(([, d]) => !d.declares.some((x) => x !== name && ([...chosen.values()].some((c) => c.d.declares.includes(x)) || props.some((p) => p.name === x))))
         .sort((a, b) => total(b[1]) - total(a[1]))[0];
     const visit = (name: string, from: string): void => {
       if ([...chosen.values()].some((c) => c.d.declares.includes(name)) || props.some((p) => p.name === name)) return;
@@ -469,14 +635,20 @@ export class Expander {
         chosen.set(key, { key, d, text: d.kind === "local" ? dedent(text) : text, v });
         why.push(`${name}: declared the way ${best.n} of ${total(d)} components do it${from ? `, for ${from}` : ""}`);
         Object.assign(imports, v.imports);
-        for (const u of v.uses) visit(u, d.declares.join(", "));
+        // what its own component was given as props (the table's data) is a prop here too
+        for (const u of v.fromProps ?? []) asProp(u, d.declares.join(", "));
+        for (const u of v.uses) if (!(v.fromProps ?? []).includes(u)) visit(u, d.declares.join(", "));
         return;
       }
-      // nobody declares it: it comes in as a prop, typed as the code types it when that type stands alone
+      asProp(name, "");
+    };
+    // a prop, typed as the code types it when that type stands alone
+    const asProp = (name: string, from: string): void => {
+      if ([...chosen.values()].some((c) => c.d.declares.includes(name)) || props.some((p) => p.name === name)) return;
       const p = decls["prop:" + name];
       const t = p ? (Object.entries(p.variants).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? "any") : "any";
       props.push({ name, type: /\b[A-Z]/.test(t) ? "any" : t });
-      why.push(`${name}: no component declares it, so it is a prop`);
+      why.push(from ? `${name}: a prop, as where ${from} comes from` : `${name}: no component declares it, so it is a prop`);
     };
     for (const n of names) visit(n, "");
     // effects whose local names are all declared now
@@ -584,23 +756,67 @@ function collectFields(nodes: PreviewNode[]): string[] {
 function withFields(text: string, fields: string[], defs: Record<string, Record<string, number>>): string {
   if (!fields.length) return text;
   let out = text;
-  if (/z\.object\(\{/.test(out)) {
-    const lines = fields.map((f) => `  ${f}: ${Object.entries(defs[f] ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "z.string()"},`);
-    out = out.replace(/z\.object\(\{[\s\S]*?\n\}\)/, `z.object({\n${lines.join("\n")}\n})`);
+  const at = out.indexOf("z.object({");
+  if (at >= 0) {
+    const open = at + "z.object(".length;
+    const close = matchBrace(out, open);
+    if (close > open) {
+      const lines = fields.map((f) => `  ${f}: ${Object.entries(defs[f] ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "z.string()"},`);
+      out = out.slice(0, open) + `{\n${lines.join("\n")}\n}` + out.slice(close + 1);
+    }
   }
-  if (/defaultValues: \{[^}]*\}/.test(out)) out = out.replace(/defaultValues: \{[^}]*\}/, `defaultValues: { ${fields.map((f) => `${f}: ""`).join(", ")} }`);
+  const dv = out.indexOf("defaultValues: {");
+  if (dv >= 0) {
+    const open = dv + "defaultValues: ".length;
+    const close = matchBrace(out, open);
+    if (close > open) out = out.slice(0, open) + `{ ${fields.map((f) => `${f}: ${emptyFor(Object.entries(defs[f] ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "z.string()")}`).join(", ")} }` + out.slice(close + 1);
+  }
   return out;
+}
+
+/** An empty value of the type a zod definition describes: [] for z.array(...), false for z.boolean(), ... */
+function emptyFor(def: string): string {
+  const head = def.replace(/\s+/g, "").replace(/^z\.coerce\./, "z.");
+  if (head.startsWith("z.array(")) return "[]";
+  if (head.startsWith("z.boolean(")) return "false";
+  if (head.startsWith("z.number(")) return "0";
+  if (head.startsWith("z.enum([")) return head.match(/^z\.enum\(\[\s*(['"][^'"]*['"])/)?.[1] ?? '""';
+  if (head.startsWith("z.date(")) return "new Date()";
+  if (/\.optional\(\)/.test(head) && !head.startsWith("z.string(")) return "undefined";
+  return '""';
+}
+
+/** The index of the } closing the { at `open`, skipping strings; -1 if none. */
+function matchBrace(s: string, open: number): number {
+  let depth = 0;
+  let quote: string | null = null;
+  for (let i = open; i < s.length; i++) {
+    const c = s[i] as string;
+    if (quote) {
+      if (c === "\\") i++;
+      else if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") quote = c;
+    else if (c === "{") depth++;
+    else if (c === "}" && --depth === 0) return i;
+  }
+  return -1;
 }
 
 /** Component imports and declaration imports, one line per module, React first. */
 function mergeImports(components: Map<string, string[]>, other: Record<string, string>): string[] {
+  // "<module>#<exported>" is a renamed import; "default:<module>" a default one
   const by = new Map<string, string[]>();
-  for (const [n, m] of Object.entries(other)) by.set(m, [...(by.get(m) ?? []), n]);
+  for (const [n, spec] of Object.entries(other)) {
+    const [m, as] = spec.split("#");
+    by.set(m, [...(by.get(m) ?? []), as ? `${as} as ${n}` : n]);
+  }
+  for (const [m, ns] of components) by.set(m, [...(by.get(m) ?? []), ...ns]);
   const order = [...by.keys()].sort((a, b) => Number(b === "react") - Number(a === "react"));
-  return [
-    ...order.map((m) => `import { ${(by.get(m) as string[]).join(", ")} } from "${m}";`),
-    ...[...components].map(([m, ns]) => `import { ${ns.join(", ")} } from "${m}";`),
-  ];
+  return order.flatMap((m) =>
+    m.startsWith("default:") ? (by.get(m) as string[]).map((n) => `import ${n} from "${m.slice(8)}";`) : [`import { ${[...new Set(by.get(m))].join(", ")} } from "${m}";`],
+  );
 }
 
 function chain(e: Entry<Step>): Step[] {
@@ -613,6 +829,9 @@ function chain(e: Entry<Step>): Step[] {
   return out;
 }
 
+/** Props whose values a piece may name ("dstr" → variant="destructive"): choices, not wiring or free text. */
+const VALUE_PROPS = (p: string) => !/^(data-|aria-)/.test(p) && !["className", "id", "htmlFor", "form", "placeholder", "href", "src", "alt", "title", "defaultValue", "value", "to", "key"].includes(p);
+
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function topOf(o: Record<string, number> | undefined, share: number): string | null {
@@ -620,6 +839,14 @@ function topOf(o: Record<string, number> | undefined, share: number): string | n
   const tot = Object.values(o).reduce((a, b) => a + b, 0);
   const [k, v] = Object.entries(o).sort((a, b) => b[1] - a[1])[0] ?? ["", 0];
   return k && tot > 0 && v / tot >= share ? k : null;
+}
+
+function pickSkels(st: CompStat, parent: string): Record<string, { n: number; sample: SkelItem[] }> {
+  const here = st.skels?.[parent];
+  if (here && Object.values(here).reduce((a, b) => a + b.n, 0) >= 2) return here;
+  const all: Record<string, { n: number; sample: SkelItem[] }> = {};
+  for (const s of Object.values(st.skels ?? {})) for (const [k, v] of Object.entries(s)) all[k] = all[k] ? { n: all[k].n + v.n, sample: all[k].sample } : { ...v };
+  return all;
 }
 
 function pickSeqs(st: CompStat | undefined, parent: string): Record<string, number> {
@@ -637,12 +864,13 @@ function pickSeqs(st: CompStat | undefined, parent: string): Record<string, numb
  * value the user named replaces its prop's value; a value named further up
  * (name="password") picks a combination that agrees (type="password").
  */
-function propsFor(st: CompStat, parent: string, set: { prop: string; value: string } | null, hint: string | undefined, nth = 0, keep: (k: string, v: string | null) => boolean = () => true): { attrs: string; text: string | null; pairs: [string, string][] } {
+function propsFor(st: CompStat, parent: string, set: { prop: string; value: string } | null, hint: string | undefined, nth = 0, keep: (k: string, v: string | null) => boolean = () => true, needs?: (k: string, v: string | null) => boolean): { attrs: string; text: string | null; pairs: [string, string][] } {
   type Sig = { p: [string, string | null][]; t: string };
   const pick = (sigs: Record<string, number> | undefined) => Object.entries(sigs ?? {}).map(([k, n]) => [JSON.parse(k) as Sig, n] as const);
   let cands = (st.byParent?.[parent] ?? 0) >= 2 ? pick(st.sigs?.[parent]) : [];
   if (!cands.length) cands = Object.values(st.sigs ?? {}).flatMap((x) => pick(x));
   const h = hint === undefined ? undefined : JSON.stringify(hint);
+  const req = st.required ?? [];
   // how often each combination of props (text aside) occurs
   const combo = new Map<string, number>();
   for (const [sig, n] of cands) combo.set(JSON.stringify(sig.p), (combo.get(JSON.stringify(sig.p)) ?? 0) + n);
@@ -651,14 +879,27 @@ function propsFor(st: CompStat, parent: string, set: { prop: string; value: stri
     if (set && sig.p.some(([k]) => k === set.prop && (!set.value || true))) s += 10000;
     if (set && sig.p.some(([k, v]) => k === set.prop && v === JSON.stringify(set.value))) s += 5000;
     if (h && (sig.p.some(([, v]) => v === h) || sig.t.toLowerCase() === (hint as string).toLowerCase())) s += 1000;
+    // combinations that give what the types require come first
+    s += 50 * req.filter((r) => sig.p.some(([k]) => k === r)).length;
     return s;
   };
   const ranked = cands.slice().sort((a, b) => score(b[0], b[1]) - score(a[0], a[1]));
   // the nth use among siblings takes the nth most usual combination: Cancel, then Save
   const best = (ranked[Math.min(nth, ranked.length - 1)] ?? ranked[0])?.[0] ?? { p: [], t: "" };
   // a key only means something inside a .map(), which an expansion never has
-  const sig = best.p.filter(([k, v]) => !(st.render && k === st.render.prop) && k !== "key" && keep(k, v));
+  // props wired to the surrounding code (onClick={() => toggleSidebar()}, className={cn(..., className)}) are left
+  // out: they belong to the component the code came from, not to a fresh one
+  // (a required prop stays, wiring and all: its names become props of the new component)
+  const sig = best.p.filter(([k, v]) => !(st.render && k === st.render.prop) && k !== "key" && keep(k, v) && (req.includes(k) || !(needs && needs(k, v))));
   if (set && !sig.some(([k]) => k === set.prop)) sig.push([set.prop, JSON.stringify(set.value)]);
+  // anything still required is given its usual value, a different one for each sibling (value="light", value="dark")
+  for (const r of req) {
+    if (sig.some(([k]) => k === r)) continue;
+    const vals = Object.entries(st.props[r]?.vals ?? {}).filter(([v]) => keep(r, v)).sort((a, b) => Number(/^["\d]/.test(b[0])) - Number(/^["\d]/.test(a[0])) || b[1] - a[1]);
+    const lit = vals.filter(([v]) => /^["\d]/.test(v));
+    const v = (lit.length ? lit[nth % lit.length] : vals[0])?.[0];
+    if (v !== undefined) sig.push([r, v]);
+  }
   const attrs = sig
     .map(([k, v]) => {
       if (k.startsWith("...")) return `{${k}}`;
