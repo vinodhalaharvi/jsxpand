@@ -27554,7 +27554,7 @@
     }
    }
   },
-  "effect:clearTimeout,entityName,message,queueMicrotask,selectedCount,setAnnouncement,timer,useEffect": {
+  "effect:clearTimeout,entityName,queueMicrotask,selectedCount,setAnnouncement,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
@@ -27563,11 +27563,9 @@
      "uses": [
       "clearTimeout",
       "entityName",
-      "message",
       "queueMicrotask",
       "selectedCount",
       "setAnnouncement",
-      "timer",
       "useEffect"
      ],
      "imports": {
@@ -27609,16 +27607,8 @@
      "n": 1,
      "uses": [
       "React",
-      "buttons",
       "toolbarRef",
-      "currentIndex",
-      "nextIndex",
-      "prevIndex",
-      "target",
       "HTMLElement",
-      "activeElement",
-      "isFromDropdownTrigger",
-      "isFromDropdownContent",
       "handleClearSelection"
      ],
      "imports": {},
@@ -28115,14 +28105,13 @@
     }
    }
   },
-  "effect:onScroll,setOffset,useEffect": {
+  "effect:setOffset,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
     "useEffect(() => {\n    const onScroll = () => {\n      setOffset(document.body.scrollTop || document.documentElement.scrollTop)\n    }\n\n    // Add scroll listener to the body\n    document.addEventListener('scroll', onScroll, { passive: true })\n\n    // Clean up the event listener on unmount\n    return () => document.removeEventListener('scroll', onScroll)\n  }, [])": {
      "n": 1,
      "uses": [
-      "onScroll",
       "setOffset",
       "useEffect"
      ],
@@ -28809,7 +28798,6 @@
      "n": 1,
      "uses": [
       "auth",
-      "currentPath",
       "location",
       "navigate"
      ],
@@ -28837,16 +28825,14 @@
     }
    }
   },
-  "effect:metaThemeColor,theme,themeColor,useEffect": {
+  "effect:theme,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
     "useEffect(() => {\n    const themeColor = theme === 'dark' ? '#020817' : '#fff'\n    const metaThemeColor = document.querySelector(\"meta[name='theme-color']\")\n    if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)\n  }, [theme])": {
      "n": 1,
      "uses": [
-      "metaThemeColor",
       "theme",
-      "themeColor",
       "useEffect"
      ],
      "imports": {
@@ -28972,7 +28958,7 @@
     }
    }
   },
-  "effect:dir,htmlElement,useEffect": {
+  "effect:dir,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
@@ -28980,7 +28966,6 @@
      "n": 1,
      "uses": [
       "dir",
-      "htmlElement",
       "useEffect"
      ],
      "imports": {
@@ -29136,7 +29121,6 @@
      "uses": [
       "useState",
       "Font",
-      "savedFont",
       "getCookie",
       "FONT_COOKIE_NAME",
       "fonts"
@@ -29150,16 +29134,14 @@
     }
    }
   },
-  "effect:applyFont,font,root,useEffect": {
+  "effect:font,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
     "useEffect(() => {\n    const applyFont = (font: string) => {\n      const root = document.documentElement\n      root.classList.forEach((cls) => {\n        if (cls.startsWith('font-')) root.classList.remove(cls)\n      })\n      root.classList.add(`font-${font}`)\n    }\n\n    applyFont(font)\n  }, [font])": {
      "n": 1,
      "uses": [
-      "applyFont",
       "font",
-      "root",
       "useEffect"
      ],
      "imports": {
@@ -29377,7 +29359,6 @@
      "uses": [
       "useState",
       "Collapsible",
-      "saved",
       "getCookie",
       "LAYOUT_COLLAPSIBLE_COOKIE_NAME",
       "DEFAULT_COLLAPSIBLE"
@@ -29402,7 +29383,6 @@
      "uses": [
       "useState",
       "Variant",
-      "saved",
       "getCookie",
       "LAYOUT_VARIANT_COOKIE_NAME",
       "DEFAULT_VARIANT"
@@ -29548,7 +29528,7 @@
     }
    }
   },
-  "effect:KeyboardEvent,down,setOpen,useEffect": {
+  "effect:KeyboardEvent,setOpen,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
@@ -29556,7 +29536,6 @@
      "n": 1,
      "uses": [
       "KeyboardEvent",
-      "down",
       "setOpen",
       "useEffect"
      ],
@@ -29788,7 +29767,7 @@
     }
    }
   },
-  "effect:ResolvedTheme,applyTheme,handleChange,mediaQuery,resolvedTheme,root,systemTheme,theme,useEffect": {
+  "effect:ResolvedTheme,resolvedTheme,theme,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
@@ -29796,12 +29775,7 @@
      "n": 1,
      "uses": [
       "ResolvedTheme",
-      "applyTheme",
-      "handleChange",
-      "mediaQuery",
       "resolvedTheme",
-      "root",
-      "systemTheme",
       "theme",
       "useEffect"
      ],
@@ -30415,9 +30389,7 @@
       "setIsLoading",
       "toast",
       "sleep",
-      "mockUser",
       "auth",
-      "targetPath",
       "redirectTo",
       "navigate"
      ],
@@ -30476,9 +30448,7 @@
     "const onSubmit = () => {\n    const file = form.getValues('file')\n\n    if (file && file[0]) {\n      const fileDetails = {\n        name: file[0].name,\n        size: file[0].size,\n        type: file[0].type,\n      }\n      showSubmittedData(fileDetails, 'You have imported the following file:')\n    }\n    onOpenChange(false)\n  }": {
      "n": 1,
      "uses": [
-      "file",
       "form",
-      "fileDetails",
       "showSubmittedData",
       "onOpenChange"
      ],
@@ -30855,7 +30825,6 @@
       "selectedUser",
       "Record",
       "Convo",
-      "key",
       "format"
      ],
      "imports": {
@@ -31477,7 +31446,6 @@
     "const handleBulkStatusChange = (status: string) => {\n    const selectedTasks = selectedRows.map((row) => row.original as Task)\n    toast.promise(sleep(2000), {\n      loading: 'Updating status...',\n      success: () => {\n        table.resetRowSelection()\n        return `Status updated to \"${status}\" for ${selectedTasks.length} task${selectedTasks.length > 1 ? 's' : ''}.`\n      },\n      error: 'Error',\n    })\n    table.resetRowSelection()\n  }": {
      "n": 1,
      "uses": [
-      "selectedTasks",
       "selectedRows",
       "Task",
       "toast",
@@ -31496,7 +31464,6 @@
     "const handleBulkStatusChange = (status: 'active' | 'inactive') => {\n    const selectedUsers = selectedRows.map((row) => row.original as User)\n    toast.promise(sleep(2000), {\n      loading: `${status === 'active' ? 'Activating' : 'Deactivating'} users...`,\n      success: () => {\n        table.resetRowSelection()\n        return `${status === 'active' ? 'Activated' : 'Deactivated'} ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}`\n      },\n      error: `Error ${status === 'active' ? 'activating' : 'deactivating'} users`,\n    })\n    table.resetRowSelection()\n  }": {
      "n": 1,
      "uses": [
-      "selectedUsers",
       "selectedRows",
       "User",
       "toast",
@@ -31523,7 +31490,6 @@
     "const handleBulkPriorityChange = (priority: string) => {\n    const selectedTasks = selectedRows.map((row) => row.original as Task)\n    toast.promise(sleep(2000), {\n      loading: 'Updating priority...',\n      success: () => {\n        table.resetRowSelection()\n        return `Priority updated to \"${priority}\" for ${selectedTasks.length} task${selectedTasks.length > 1 ? 's' : ''}.`\n      },\n      error: 'Error',\n    })\n    table.resetRowSelection()\n  }": {
      "n": 1,
      "uses": [
-      "selectedTasks",
       "selectedRows",
       "Task",
       "toast",
@@ -31550,7 +31516,6 @@
     "const handleBulkExport = () => {\n    const selectedTasks = selectedRows.map((row) => row.original as Task)\n    toast.promise(sleep(2000), {\n      loading: 'Exporting tasks...',\n      success: () => {\n        table.resetRowSelection()\n        return `Exported ${selectedTasks.length} task${selectedTasks.length > 1 ? 's' : ''} to CSV.`\n      },\n      error: 'Error',\n    })\n    table.resetRowSelection()\n  }": {
      "n": 1,
      "uses": [
-      "selectedTasks",
       "selectedRows",
       "Task",
       "toast",
@@ -32137,9 +32102,6 @@
       "setRowSelection",
       "setSorting",
       "setColumnVisibility",
-      "id",
-      "title",
-      "searchValue",
       "getCoreRowModel",
       "getFilteredRowModel",
       "getPaginationRowModel",
@@ -32248,7 +32210,6 @@
     "const handleBulkInvite = () => {\n    const selectedUsers = selectedRows.map((row) => row.original as User)\n    toast.promise(sleep(2000), {\n      loading: 'Inviting users...',\n      success: () => {\n        table.resetRowSelection()\n        return `Invited ${selectedUsers.length} user${selectedUsers.length > 1 ? 's' : ''}`\n      },\n      error: 'Error inviting users',\n    })\n    table.resetRowSelection()\n  }": {
      "n": 1,
      "uses": [
-      "selectedUsers",
       "selectedRows",
       "User",
       "toast",
@@ -32642,7 +32603,6 @@
       "toast",
       "QueryCache",
       "useAuthStore",
-      "redirect",
       "router"
      ],
      "imports": {
@@ -32914,7 +32874,7 @@
     }
    }
   },
-  "effect:cancelled,clearInterval,interval,opened,setCountdown,setInterval,useEffect": {
+  "effect:cancelled,clearInterval,opened,setCountdown,setInterval,useEffect": {
    "kind": "local",
    "declares": [],
    "variants": {
@@ -32923,7 +32883,6 @@
      "uses": [
       "cancelled",
       "clearInterval",
-      "interval",
       "opened",
       "setCountdown",
       "setInterval",
@@ -33460,7 +33419,6 @@
    "isSelected",
    "selectedValues",
    "option",
-   "filterValues",
    "column"
   ],
   "{cn(\n                        'flex size-4 items-center justify-center rounded-sm border border-primary',\n                        isSelected\n                          ? 'bg-primary text-primary-foreground'\n                          : 'opacity-50 [&_svg]:invisible'\n                      )}": [
@@ -34526,6 +34484,10 @@
   "pageSize": {
    "z.number().optional().catch(10)": 2
   }
+ },
+ "types": {
+  "checked": true,
+  "lib": true
  },
  "importCounts": {
   "SVGProps": {
@@ -35750,14 +35712,12 @@
    "isSelected": "@local",
    "selectedValues": "@local",
    "option": "@local",
-   "filterValues": "@local",
    "column": "@local"
   },
   "CommandItem|{() => {\n                      if (isSelected) {\n                        selectedValues.delete(option.value)\n                      } else {\n                        selectedValues.add(option.value)\n                      }\n                      const filterValues = Array.from(selectedValues)\n                      column?.setFilterValue(\n                        filterValues.length ? filterValues : undefined\n                      )\n                    }}": {
    "isSelected": "@local",
    "selectedValues": "@local",
    "option": "@local",
-   "filterValues": "@local",
    "column": "@local"
   },
   "{cn(\n                        'flex size-4 items-center justify-center rounded-sm border border-primary',\n                        isSelected\n                          ? 'bg-primary text-primary-foreground'\n                          : 'opacity-50 [&_svg]:invisible'\n                      )}": {

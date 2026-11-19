@@ -5,6 +5,7 @@
 // component inside them counts as a child of the nearest component above.
 import ts from "typescript";
 import { readFileSync, readdirSync, writeFileSync, statSync, existsSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 import { join, relative, posix, sep, dirname, resolve } from "node:path";
 
 const ROOT = "ROOT";
@@ -18,6 +19,29 @@ export function freeNames(node) {
     if (ts.isArrowFunction(n) || ts.isFunctionExpression(n) || ts.isFunctionDeclaration(n)) {
       const b = new Set(bound);
       n.parameters.forEach((p) => bindingNames(p.name).forEach((x) => b.add(x)));
+      ts.forEachChild(n, (m) => walk(m, b));
+      return;
+    }
+    // names declared inside a block are its own (const id = ... in a callback is not a free name),
+    // as are a for loop's and a catch clause's
+    if (ts.isBlock(n) || ts.isCaseClause(n) || ts.isDefaultClause(n)) {
+      const b = new Set(bound);
+      for (const st of n.statements) {
+        if (ts.isVariableStatement(st)) st.declarationList.declarations.forEach((d) => bindingNames(d.name).forEach((x) => b.add(x)));
+        else if ((ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st)) && st.name) b.add(st.name.text);
+      }
+      ts.forEachChild(n, (m) => walk(m, b));
+      return;
+    }
+    if ((ts.isForStatement(n) || ts.isForOfStatement(n) || ts.isForInStatement(n)) && n.initializer && ts.isVariableDeclarationList(n.initializer)) {
+      const b = new Set(bound);
+      n.initializer.declarations.forEach((d) => bindingNames(d.name).forEach((x) => b.add(x)));
+      ts.forEachChild(n, (m) => walk(m, b));
+      return;
+    }
+    if (ts.isCatchClause(n)) {
+      const b = new Set(bound);
+      if (n.variableDeclaration) bindingNames(n.variableDeclaration.name).forEach((x) => b.add(x));
       ts.forEachChild(n, (m) => walk(m, b));
       return;
     }
@@ -127,22 +151,37 @@ function tsxFiles(dir, skip = ["components/ui/", ".test.", ".gen.", "routeTree"]
   return out;
 }
 
-export function learn(dir) {
+/**
+ * Learns a model from the .tsx files under dir.
+ * root: the project root (where node_modules is). alias: how the project writes imports from
+ * its own tree ({ prefix: "@/", target: "<abs dir>" } for "@/*" → "./src/*"); without one,
+ * imports are written "~root/<path from root>" and made relative where the code lands.
+ */
+export function learn(dir, opts = {}) {
   const model = { files: 0, edges: {}, comps: {}, decls: {}, imports: {}, exprUses: {}, fields: {} };
   const comp = (n) => (model.comps[n] ??= { count: 0, module: null, props: {}, text: {}, seqs: {}, wrapper: {}, render: null });
   const bump = (o, k, by = 1) => (o[k] = (o[k] ?? 0) + by);
   // with the project's types at hand (its node_modules installed), the learner also reads what each
   // component requires; without them it learns from usage alone
-  const root = dirname(resolve(dir));
+  const root = resolve(opts.root ?? dirname(resolve(dir)));
+  const alias = opts.alias === undefined ? { prefix: "@/", target: resolve(dir) } : opts.alias;
   const typed = existsSync(join(root, "node_modules/react"));
-  const program = typed
+  // the project's own compiler options and declaration files when given (the editor passes them), else a guess
+  const program = typed && opts.compilerOptions
+    ? ts.createProgram([...tsxFiles(dir).map((f) => join(dir, f)), ...(opts.declarations ?? [])], { ...opts.compilerOptions, noEmit: true, incremental: false, tsBuildInfoFile: undefined })
+    : typed
     ? ts.createProgram(tsxFiles(dir).map((f) => join(dir, f)), {
         jsx: ts.JsxEmit.Preserve, strict: true, noEmit: true, skipLibCheck: true, target: ts.ScriptTarget.ES2022,
-        module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, baseUrl: root, paths: { "@/*": [relative(root, resolve(dir)) + "/*"] },
+        module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, baseUrl: root,
+        // (an alias for the root itself, "@/*" → "./*", must not become "/*")
+        paths: alias ? { [alias.prefix + "*"]: [(relative(root, alias.target) || ".") + "/*"] } : {},
         types: [],
       })
     : null;
   const checker = program?.getTypeChecker();
+  // whether the types were read in full: TypeScript's own library has to have been found
+  // (bundled, it looks beside the bundle; without it Omit, Partial and the DOM read as any)
+  model.types = program ? { checked: true, lib: program.getSourceFiles().some((f) => program.isSourceFileDefaultLibrary(f)) } : { checked: false, lib: false };
   const importedSomewhere = new Set();
   for (const f of tsxFiles(dir)) {
     const sf = ts.createSourceFile(f, readFileSync(join(dir, f), "utf8"), ts.ScriptTarget.Latest, false, ts.ScriptKind.TSX);
@@ -168,7 +207,10 @@ export function learn(dir) {
     // so it still resolves from wherever the generated code ends up
     const from = (s) => {
       const m = s.moduleSpecifier.text;
-      return m.startsWith(".") ? "@/" + posix.normalize(posix.join(posix.dirname(f.split(sep).join("/")), m)) : m;
+      if (!m.startsWith(".")) return m;
+      const abs = resolve(dir, dirname(f), m);
+      const rel = (a, b) => relative(a, b).split(sep).join("/");
+      return alias && !rel(alias.target, abs).startsWith("..") ? alias.prefix + rel(alias.target, abs) : "~root/" + rel(root, abs);
     };
     sf.statements.forEach((s) => {
       // a default import is recorded as "default:<module>"
@@ -392,7 +434,9 @@ export function learn(dir) {
   return model;
 }
 
-if (process.argv[2]) {
+// run as a script (node src/learn.mjs <dir> <out.json>), and only then: bundled into something
+// else (the editor extension), this module must not read that program's arguments
+if (import.meta.url && process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href && process.argv[2]) {
   const m = learn(process.argv[2]);
   writeFileSync(process.argv[3], JSON.stringify(m, null, 1));
   const n = Object.values(m.edges).reduce((a, e) => a + Object.values(e).reduce((x, y) => x + y, 0), 0);

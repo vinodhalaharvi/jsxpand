@@ -149,7 +149,7 @@ export class Expander {
   private readonly childCache = new Map<string, number>();
   private readonly candCache = new Map<string, Match[]>();
 
-  constructor(readonly model: Model, readonly opts = { alpha: 0.5, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
+  constructor(readonly model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
     this.names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
     this.nameSet = new Set(this.names);
     for (const [p, e] of Object.entries(model.edges)) for (const c of Object.keys(e)) if (this.nameSet.has(p)) this.holders.set(c, [...(this.holders.get(c) ?? []), p]);
@@ -238,6 +238,11 @@ export class Expander {
     const all = this.matches(chunk).map((m) => [m, score(m)] as const).filter(([, s]) => s > -Infinity).sort((a, b) => b[1] - a[1]);
     const top = all[0]?.[1] ?? 0;
     const kept = all.filter(([, s]) => s >= top + this.opts.matchSpread).slice(0, this.opts.perChunk).map(([m]) => m);
+    // and the best couple by spelling alone: "card" is Card even where Card has not been seen yet,
+    // and the pieces after it ("hdr" → CardHeader) get their say before it is ruled out
+    // (leaving off a whole word part, "Users" of UsersTable, counts against it here too)
+    const spelling = (m: Match) => m.logp + m.dropped.length * Math.log(this.opts.dropCost);
+    for (const [m] of [...all].sort((a, b) => spelling(b[0]) - spelling(a[0])).slice(0, 2)) if (!kept.includes(m)) kept.push(m);
     this.candCache.set(key, kept);
     return kept;
   }
@@ -319,7 +324,7 @@ export class Expander {
         const rep = /^\*(\d+)/.exec(text.slice(next));
         if (rep) { repeat = Math.max(1, Math.min(20, Number(rep[1]))); next += rep[0].length; }
         for (const up of ups) {
-          const parent = up >= L ? ROOT : (path[L - 1 - up] as string);
+          const parent = up >= L ? this.top : (path[L - 1 - up] as string);
           for (const m0 of this.candidates(chunk, parent)) {
             let m = m0;
             if (mod) {
@@ -329,15 +334,15 @@ export class Expander {
               m = { ...m0, logp: m0.logp + v.logp, set: v.set };
             }
             // a second component at the top makes a fragment: possible, but rarely meant
-            const attach = Math.log(Math.pow(this.opts.upDecay, up) / z) + (parent === ROOT && L > 0 ? Math.log(this.opts.rootSibling) : 0);
+            const attach = Math.log(Math.pow(this.opts.upDecay, up) / z) + (parent === this.top && L > 0 ? Math.log(this.opts.rootSibling) : 0);
             const kept = path.slice(0, L - up);
             const step = (wrapper: string | null, place: number, under: string): void => {
               // a part of a compound component needs its family above it
               const need = this.required(m.comp);
-              if (need && wrapper !== need && !kept.includes(need)) return;
+              if (need && wrapper !== need && !kept.includes(need) && !this.around.includes(need)) return;
               // and so does a wrapper slipped in for it (FormControl only works inside a Form)
               const wneed = wrapper ? this.required(wrapper) : null;
-              if (wneed && !kept.includes(wneed)) return;
+              if (wneed && !kept.includes(wneed) && !this.around.includes(wneed)) return;
               const dl = this.dropLogP(m.dropped, under);
               if (dl === -Infinity) return;
               const logp = m.logp + dl + place + attach;
@@ -367,7 +372,26 @@ export class Expander {
    * Reads `text` every possible way and returns the readings' count, their
    * total probability, and the best few, each rendered as JSX.
    */
-  expand(text: string, k = 3): Expansion {
+  /** the element the abbreviation is typed inside, and every one around it (outermost first) */
+  private top = ROOT;
+  private around: string[] = [];
+
+  /**
+   * The k likeliest readings of an abbreviation. inside: the components around where it is typed,
+   * outermost first (["Main", "Card"]): readings start under the innermost one the model knows.
+   */
+  expand(text: string, k = 3, inside: string[] = []): Expansion {
+    this.around = inside;
+    this.top = [...inside].reverse().find((n) => this.model.comps[n]) ?? ROOT;
+    try {
+      return this.expandHere(text, k);
+    } finally {
+      this.top = ROOT;
+      this.around = [];
+    }
+  }
+
+  private expandHere(text: string, k: number): Expansion {
     const t = text.toLowerCase().replace(/[^a-z0-9>+*.^]/g, "");
     const best = topK<Step>(Math.max(8, k * 3), (l, kids) => (l.end ? 0 : l.logp + (kids[0] as number)));
     const total: GradedAlgebra<Step, number> = {
@@ -571,13 +595,17 @@ export class Expander {
     const byModule = new Map<string, string[]>();
     for (const n of used) {
       const m = this.model.comps[n]?.module;
+      if (!m) continue;
       const as = this.model.comps[n]?.as;
       const key = as === "default" ? "default:" + m : m;
-      if (m) byModule.set(key, [...(byModule.get(key) ?? []), as && as !== "default" ? `${as} as ${n}` : n]);
+      byModule.set(key, [...(byModule.get(key) ?? []), as && as !== "default" ? `${as} as ${n}` : n]);
     }
     const imports = mergeImports(byModule, {});
     const fields = collectFields(preview);
     const comp = this.complete([...usedNames].filter((u) => !bound.has(u)), fields, prefer);
+    // a prop nothing in the code reads is left out (brought along with a declaration, then not needed)
+    const body0 = [...comp.module, ...comp.local, lines.join("\n")].join("\n");
+    comp.props = comp.props.filter((p) => new RegExp(`(^|[^\\w$.])${p.name.replace(/\$/g, "\\$")}(?![\\w$])`).test(body0));
     const allImports = mergeImports(byModule, comp.imports);
     const name = `${tops[0]?.name ?? "My"}Example`;
     const sigText = comp.props.length ? `{ ${comp.props.map((p) => p.name).join(", ")} }: { ${comp.props.map((p) => `${p.name}: ${p.type}`).join("; ")} }` : "";
@@ -593,7 +621,14 @@ export class Expander {
       "  );",
       "}",
     ].join("\n");
-    return { code: lines.join("\n"), imports, filled, preview, file, declared: comp.why };
+    // the same, in pieces, for an editor to put each where it goes
+    const need: Record<string, string> = { ...comp.imports };
+    for (const [key, ns] of byModule) for (const n of ns) {
+      const [orig, local] = n.includes(" as ") ? n.split(" as ") : [n, n];
+      need[local] = key.startsWith("default:") ? key : orig !== local ? `${key}#${orig}` : key;
+    }
+    const parts = { jsx: lines.join("\n"), imports: need, module: comp.moduleParts, local: comp.localParts, props: comp.props };
+    return { code: lines.join("\n"), imports, filled, preview, file, declared: comp.why, parts };
   }
 
   /**
@@ -602,11 +637,12 @@ export class Expander {
    * turn (form needs formSchema, which needs z). A name nobody declares becomes
    * a prop. Effects come along when everything they touch is already declared.
    */
-  complete(names: string[], fields: string[], prefer: Record<string, string> = {}): { module: string[]; local: string[]; props: { name: string; type: string }[]; imports: Record<string, string>; why: string[] } {
+  complete(names: string[], fields: string[], prefer: Record<string, string> = {}): { module: string[]; local: string[]; moduleParts: DeclPart[]; localParts: DeclPart[]; props: { name: string; type: string }[]; imports: Record<string, string>; why: string[] } {
     const decls = this.model.decls ?? {};
     const known: Record<string, string> = { ...this.model.imports };
     for (const [n, from] of Object.entries(prefer)) if (from === "@local") delete known[n]; else known[n] = from;
     const chosen = new Map<string, { key: string; d: Decl; text: string; v: DeclVariant }>();
+    const wanted = new Set(names);
     const props: { name: string; type: string }[] = [];
     const imports: Record<string, string> = {};
     const why: string[] = [];
@@ -614,7 +650,8 @@ export class Expander {
     // (const { title, desc, form, ... } = props) or something already declared
     const declaredBy = (name: string) =>
       Object.entries(decls)
-        .filter(([k, d]) => d.kind !== "prop" && !k.startsWith("effect:") && d.declares.includes(name) && d.declares.length <= 3)
+        // and declaring nothing that goes unused (const { id, title, searchValue } = ... for title alone)
+        .filter(([k, d]) => d.kind !== "prop" && !k.startsWith("effect:") && d.declares.includes(name) && d.declares.every((x) => x === name || wanted.has(x)))
         .filter(([, d]) => !d.declares.some((x) => x !== name && ([...chosen.values()].some((c) => c.d.declares.includes(x)) || props.some((p) => p.name === x))))
         .sort((a, b) => total(b[1]) - total(a[1]))[0];
     const visit = (name: string, from: string): void => {
@@ -664,9 +701,9 @@ export class Expander {
       }
     }
     const all = [...chosen.values()];
-    const module = all.filter((c) => c.d.kind === "module").sort((a, b) => Number(/^(type|interface)/.test(b.text)) - Number(/^(type|interface)/.test(a.text))).map((c) => c.text);
-    const local = all.filter((c) => c.d.kind === "local").sort((a, b) => a.v.pos / a.v.n - b.v.pos / b.v.n).map((c) => c.text);
-    return { module, local, props, imports, why };
+    const moduleParts = all.filter((c) => c.d.kind === "module").sort((a, b) => Number(/^(type|interface)/.test(b.text)) - Number(/^(type|interface)/.test(a.text))).map((c) => ({ text: c.text, declares: c.d.declares, uses: c.v.uses }));
+    const localParts = all.filter((c) => c.d.kind === "local").sort((a, b) => a.v.pos / a.v.n - b.v.pos / b.v.n).map((c) => ({ text: c.text, declares: c.d.declares, uses: c.v.uses }));
+    return { module: moduleParts.map((p) => p.text), local: localParts.map((p) => p.text), moduleParts, localParts, props, imports, why };
   }
 
   /** Plain-language reasons for each step of a reading. */
@@ -693,6 +730,12 @@ export class Expander {
   }
 }
 
+/** A declaration the expansion needs, and the names it declares. */
+export type DeclPart = { text: string; declares: string[]; uses: string[] };
+
+/** An expansion in pieces: the JSX, the imports it needs (name → module spec), declarations and props. */
+export type Parts = { jsx: string; imports: Record<string, string>; module: DeclPart[]; local: DeclPart[]; props: { name: string; type: string }[] };
+
 /** One element of an expansion, for drawing a preview: props as written (strings unquoted, expressions in braces). */
 export interface PreviewNode {
   name: string;
@@ -705,6 +748,8 @@ export interface Result {
   code: string;
   /** the whole component: imports, declarations, hooks, and the JSX */
   file: string;
+  /** the same in pieces, for an editor to place each where it belongs */
+  parts: Parts;
   /** why each declaration is there */
   declared: string[];
   preview: PreviewNode[];
