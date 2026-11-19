@@ -42,6 +42,50 @@
   td, th { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
   th { font-weight: 600; }
   #gf { background: var(--codebg); border-radius: 8px; padding: 10px 12px; font-size: 13.5px; }
+  /* preview: a look-alike of the usual component styles, always on a light page */
+  .pv { margin: 10px 0 0; padding: 18px; border-radius: 8px; background: #f6f6f4; border: 1px solid var(--line); color: #0a0a0a; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; max-height: 420px; overflow: auto; }
+  .pv * { box-sizing: border-box; }
+  .pv-card { background: #fff; border: 1px solid #e4e4e7; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.05); min-width: 260px; max-width: 360px; flex: 1; }
+  .pv-head { padding: 16px 16px 8px; display: grid; gap: 4px; }
+  .pv-title { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .pv-desc { color: #71717a; font-size: 12.5px; }
+  .pv-content { padding: 8px 16px 12px; display: grid; gap: 8px; }
+  .pv-foot { padding: 8px 16px 16px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .pv-btn { display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 6px; font-weight: 500; font-size: 12.5px; background: #18181b; color: #fafafa; border: 1px solid #18181b; white-space: nowrap; }
+  .pv-btn-outline { background: #fff; color: #18181b; border-color: #e4e4e7; }
+  .pv-btn-destructive { background: #dc2626; border-color: #dc2626; }
+  .pv-btn-ghost { background: transparent; color: #18181b; border-color: transparent; }
+  .pv-btn-secondary { background: #f4f4f5; color: #18181b; border-color: #f4f4f5; }
+  .pv-sm { height: 28px; padding: 0 10px; }
+  .pv-badge { display: inline-flex; width: fit-content; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: #18181b; color: #fff; border: 1px solid #18181b; }
+  .pv-badge-secondary { background: #f4f4f5; color: #18181b; border-color: #f4f4f5; }
+  .pv-badge-outline { background: #fff; color: #18181b; border-color: #e4e4e7; }
+  .pv-label { font-weight: 500; font-size: 12.5px; }
+  .pv-input { height: 32px; border: 1px solid #e4e4e7; border-radius: 6px; padding: 6px 10px; background: #fff; font-size: 12.5px; min-width: 200px; white-space: nowrap; overflow: hidden; }
+  .pv-area { height: 64px; }
+  .pv-ph { color: #a1a1aa; }
+  .pv-select { display: flex; justify-content: space-between; align-items: center; }
+  .pv-select::after { content: "⌄"; color: #71717a; margin-left: 8px; }
+  .pv-menu { display: none; }
+  .pv-switch { display: inline-block; width: 34px; height: 18px; border-radius: 999px; background: #18181b; position: relative; vertical-align: middle; }
+  .pv-switch::after { content: ""; position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .pv-avatar { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #e4e4e7; font-weight: 600; font-size: 12px; }
+  .pv-dialog { display: grid; gap: 12px; justify-items: start; flex: 1; }
+  .pv-modal { position: relative; background: #fff; border: 1px solid #e4e4e7; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.12); padding: 4px 4px 0; min-width: 280px; max-width: 380px; display: grid; gap: 6px; }
+  .pv-modal > :not(.pv-head):not(.pv-foot):not(.pv-x) { margin: 0 16px; }
+  .pv-x { position: absolute; right: 12px; top: 8px; color: #71717a; }
+  .pv-stack { display: grid; gap: 12px; min-width: 240px; }
+  .pv-item { display: grid; gap: 6px; }
+  .pv-stack > .pv-btn, .pv-content > .pv-btn, .pv-modal > .pv-btn { justify-self: start; }
+  .pv-table { border-collapse: collapse; background: #fff; min-width: 320px; font-size: 12.5px; }
+  .pv-table th { text-align: left; color: #71717a; font-weight: 500; padding: 8px 10px; border-bottom: 1px solid #e4e4e7; }
+  .pv-table td { padding: 8px 10px; border-bottom: 1px solid #e4e4e7; }
+  .pv-table caption { caption-side: bottom; color: #71717a; padding-top: 8px; font-size: 12px; }
+  .pv-tabs { display: grid; gap: 10px; flex: 1; }
+  .pv-tablist { display: inline-flex; width: fit-content; background: #f4f4f5; padding: 3px; border-radius: 8px; gap: 2px; }
+  .pv-tab { padding: 4px 12px; border-radius: 6px; color: #71717a; font-weight: 500; }
+  .pv-tab.on { background: #fff; color: #18181b; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .pv-generic { border: 1px dashed #a1a1aa; border-radius: 6px; padding: 6px 10px; color: #52525b; }
   #files details { border-bottom: 1px solid var(--line); padding: 6px 0; }
   #files pre { max-height: 360px; }
 </style>

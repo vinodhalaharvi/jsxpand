@@ -329,8 +329,9 @@ export class Expander {
     fill(root, 0);
     const used: string[] = [];
     const lines: string[] = [];
+    const preview: PreviewNode[] = [];
     const pad = (d: number) => "  ".repeat(d);
-    const emit = (n: T, d: number, nth0 = 0): void => {
+    const emit = (n: T, d: number, nth0 = 0, into: PreviewNode[] = preview): void => {
       if (!used.includes(n.name)) used.push(n.name);
       const st = this.model.comps[n.name] as CompStat;
       for (let r = 0; r < n.repeat; r++) {
@@ -339,13 +340,15 @@ export class Expander {
       const open = `<${n.name}${attrs ? " " + attrs : ""}`;
       // the text seen with those props, unless it is a one-off title: then a placeholder
       const text = use.text && (textCount(st, use.text) >= 2 || st.count <= 2 || nth0 + r > 0 || (n.hint && use.text.toLowerCase() === n.hint.toLowerCase())) ? use.text : textFor(st, n.parent, n.name, n.hint);
+      const pv: PreviewNode = { name: n.name, props: Object.fromEntries(use.pairs.map(([k, v]) => [k, /^"/.test(v) ? (JSON.parse(v) as string) : v])), text, kids: [] };
+      into.push(pv);
         if (st.render) {
           lines.push(`${pad(d)}${open}`);
           lines.push(`${pad(d + 1)}${st.render.prop}={(${st.render.params.startsWith("{") ? st.render.params : st.render.params}) => (`);
-          if (n.kids.length === 1) emit(n.kids[0] as T, d + 2);
+          if (n.kids.length === 1) emit(n.kids[0] as T, d + 2, 0, pv.kids);
           else {
             lines.push(`${pad(d + 2)}<>`);
-            emitAll(n.kids, d + 3);
+            emitAll(n.kids, d + 3, pv.kids);
             lines.push(`${pad(d + 2)}</>`);
           }
           lines.push(`${pad(d + 1)})}`);
@@ -360,15 +363,15 @@ export class Expander {
         const wrap = topOf(st.wrapper, 0.5);
         const inner = wrap ? d + 2 : d + 1;
         if (wrap) lines.push(`${pad(d + 1)}${wrap}`);
-        emitAll(n.kids, inner);
+        emitAll(n.kids, inner, pv.kids);
         if (wrap) lines.push(`${pad(d + 1)}</${/^<([a-z0-9]+)/.exec(wrap)?.[1]}>`);
         lines.push(`${pad(d)}</${n.name}>`);
       }
     };
-    function emitAll(kids: T[], d: number): void {
+    function emitAll(kids: T[], d: number, into: PreviewNode[]): void {
       const seen: Record<string, number> = {};
       for (const k of kids) {
-        emit(k, d, seen[k.name] ?? 0);
+        emit(k, d, seen[k.name] ?? 0, into);
         seen[k.name] = (seen[k.name] ?? 0) + k.repeat;
       }
     }
@@ -384,7 +387,7 @@ export class Expander {
       if (m) byModule.set(m, [...(byModule.get(m) ?? []), n]);
     }
     const imports = [...byModule].map(([m, ns]) => `import { ${ns.join(", ")} } from "${m}";`);
-    return { code: lines.join("\n"), imports, filled };
+    return { code: lines.join("\n"), imports, filled, preview };
   }
 
   /** Plain-language reasons for each step of a reading. */
@@ -411,8 +414,17 @@ export class Expander {
   }
 }
 
+/** One element of an expansion, for drawing a preview: props as written (strings unquoted, expressions in braces). */
+export interface PreviewNode {
+  name: string;
+  props: Record<string, string>;
+  text: string;
+  kids: PreviewNode[];
+}
+
 export interface Result {
   code: string;
+  preview: PreviewNode[];
   imports: string[];
   /** children added because the component almost always has them */
   filled: string[];
@@ -465,7 +477,7 @@ function pickSeqs(st: CompStat | undefined, parent: string): Record<string, numb
  * value the user named replaces its prop's value; a value named further up
  * (name="password") picks a combination that agrees (type="password").
  */
-function propsFor(st: CompStat, parent: string, set: { prop: string; value: string } | null, hint: string | undefined, nth = 0): { attrs: string; text: string | null } {
+function propsFor(st: CompStat, parent: string, set: { prop: string; value: string } | null, hint: string | undefined, nth = 0): { attrs: string; text: string | null; pairs: [string, string][] } {
   type Sig = { p: [string, string | null][]; t: string };
   const pick = (sigs: Record<string, number> | undefined) => Object.entries(sigs ?? {}).map(([k, n]) => [JSON.parse(k) as Sig, n] as const);
   let cands = (st.byParent?.[parent] ?? 0) >= 2 ? pick(st.sigs?.[parent]) : [];
@@ -493,7 +505,8 @@ function propsFor(st: CompStat, parent: string, set: { prop: string; value: stri
       return v === "true" ? k : `${k}=${v}`;
     })
     .join(" ");
-  return { attrs, text: best.t || null };
+  const pairs: [string, string][] = sig.map(([k, v]) => [k, set && k === set.prop ? JSON.stringify(set.value) : (v ?? "")]);
+  return { attrs, text: best.t || null, pairs };
 }
 
 function textCount(st: CompStat, t: string): number {
