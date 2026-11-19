@@ -167,8 +167,17 @@ export function learn(dir, opts = {}) {
   const alias = opts.alias === undefined ? { prefix: "@/", target: resolve(dir) } : opts.alias;
   const typed = existsSync(join(root, "node_modules/react"));
   // the project's own compiler options and declaration files when given (the editor passes them), else a guess
+  // the modules the project imports, for which entry points of a large package to read
+  const imported = new Set();
+  if (typed)
+    for (const f of tsxFiles(dir, [])) {
+      const src = readFileSync(join(dir, f), "utf8");
+      for (const m of src.matchAll(/from\s+["']([^"'.][^"']*)["']/g)) imported.add(m[1]);
+    }
+  const entries = typed ? entryPoints(root, opts.compilerOptions ?? {}, imported) : [];
+  const componentFiles = tsxFiles(dir, [".test.", ".gen.", "routeTree"]).map((f) => join(dir, f));
   const program = typed && opts.compilerOptions
-    ? ts.createProgram([...tsxFiles(dir).map((f) => join(dir, f)), ...(opts.declarations ?? [])], { ...opts.compilerOptions, noEmit: true, incremental: false, tsBuildInfoFile: undefined })
+    ? ts.createProgram([...componentFiles, ...(opts.declarations ?? []), ...entries.map((e) => e.file)], { ...opts.compilerOptions, noEmit: true, incremental: false, tsBuildInfoFile: undefined })
     : typed
     ? ts.createProgram(tsxFiles(dir).map((f) => join(dir, f)), {
         jsx: ts.JsxEmit.Preserve, strict: true, noEmit: true, skipLibCheck: true, target: ts.ScriptTarget.ES2022,
@@ -431,7 +440,139 @@ export function learn(dir, opts = {}) {
       else ts.forEachChild(m, find);
     });
   }
+  if (checker) learnExports(model, program, checker, { root, alias, componentFiles, entries });
   return model;
+}
+
+/**
+ * The public entry points of the project's dependencies, as each package declares them in its
+ * package.json "exports" (or "types"): "next/link", "lucide-react", "@radix-ui/react-select".
+ * Anything a package does not export there is internal to it.
+ */
+function entryPoints(root, options, imported = new Set()) {
+  let pkg = {};
+  try { pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")); } catch { return []; }
+  const out = [];
+  const from = join(root, "index.tsx");
+  for (const dep of Object.keys(pkg.dependencies ?? {})) {
+    let specs = [dep];
+    try {
+      const own = JSON.parse(readFileSync(join(root, "node_modules", dep, "package.json"), "utf8"));
+      // only a package that depends on React can export a component (zod, date-fns, axios cannot)
+      const needs = { ...own.dependencies, ...own.peerDependencies };
+      if (dep !== "react" && !needs.react && !needs["react-dom"] && !needs["@types/react"]) continue;
+      if (own.exports && typeof own.exports === "object" && !Array.isArray(own.exports)) {
+        const subs = Object.keys(own.exports).filter((k) => k.startsWith(".") && !k.includes("*") && !/\.(json|css|[cm]?js)$/.test(k));
+        // its main entry, and the other entry points the project imports from (next/link): a package's
+        // other entries can each re-declare all of it (lucide's dynamic.d.ts is another 3 MB of icons)
+        specs = subs.filter((k) => k === "." || imported.has(dep + k.slice(1))).map((k) => (k === "." ? dep : dep + k.slice(1)));
+      }
+    } catch { /* not installed */ }
+    for (const spec of specs) {
+      const r = ts.resolveModuleName(spec, from, options, ts.sys).resolvedModule;
+      if (r?.resolvedFileName && /\.d\.[cm]?ts$|\.tsx?$/.test(r.resolvedFileName)) out.push({ spec, file: r.resolvedFileName });
+    }
+  }
+  return out;
+}
+
+/**
+ * Every component the project can use, used yet or not: what its own files export (components/ui
+ * included) and what its dependencies' entry points export. Ones never used get a count of 0: they
+ * are offered, at the bottom, with what their types require.
+ */
+function learnExports(model, program, checker, { root, alias, componentFiles, entries }) {
+  const rel = (a, b) => relative(a, b).split(sep).join("/");
+  const specFor = (file) => {
+    const noExt = file.replace(/\.[jt]sx?$/, "").replace(/\/index$/, "");
+    return alias && !rel(alias.target, noExt).startsWith("..") ? alias.prefix + rel(alias.target, noExt) : "~root/" + rel(root, noExt);
+  };
+  const sources = [...componentFiles.map((f) => ({ spec: specFor(f), file: f, own: true })), ...entries.map((e) => ({ ...e, own: false }))];
+  // one name per thing exported: lucide exports each icon as Activity, ActivityIcon and LucideActivity,
+  // @radix-ui/react-dialog its portal as Portal and DialogPortal. The most distinctive name stands for
+  // it: the one the fewest modules export (DialogPortal over Portal), then the shortest (Activity)
+  const exportsOf = new Map();
+  const modulesNaming = new Map();
+  for (const src of sources) {
+    const sf = program.getSourceFile(src.file);
+    const mod = sf && checker.getSymbolAtLocation(sf);
+    const exps = mod ? checker.getExportsOfModule(mod) : [];
+    exportsOf.set(src, exps);
+    for (const e of new Set(exps.map((x) => x.name))) modulesNaming.set(e, (modulesNaming.get(e) ?? 0) + 1);
+  }
+  for (const src of sources) {
+    const { spec, own } = src;
+    const named = new Map();
+    for (const exp of exportsOf.get(src)) {
+      const sym = exp.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exp) : exp;
+      const decl = sym.valueDeclaration ?? sym.declarations?.[0];
+      const key = decl ? decl.getSourceFile().fileName + ":" + decl.pos : exp.name;
+      const had = named.get(key);
+      const rank = (e) => [modulesNaming.get(e.name) ?? 1, e.name.length];
+      if (!had) { named.set(key, exp); continue; }
+      const [a1, a2] = rank(exp), [b1, b2] = rank(had);
+      if (a1 < b1 || (a1 === b1 && a2 < b2)) named.set(key, exp);
+    }
+    for (const exp of named.values()) {
+      const name = exp.name;
+      if (!/^[A-Z]/.test(name)) continue;
+      const sym = exp.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exp) : exp;
+      if (!(sym.flags & ts.SymbolFlags.Value)) continue;
+      const decl = sym.valueDeclaration ?? sym.declarations?.[0];
+      if (!decl) continue;
+      // @internal: the library says it is not for you
+      if ([decl, ...(ts.isVariableDeclaration(decl) ? [decl.parent.parent] : [])].some((d) => ts.getJSDocTags(d).some((t) => t.tagName.text === "internal"))) continue;
+      const t = checker.getTypeOfSymbolAtLocation(sym, decl);
+      const sig = t.getCallSignatures()[0] ?? t.getConstructSignatures()[0];
+      if (!sig) continue;
+      // a component: a function returning something React renders, or a class with render() and props
+      // (zod's ZodString is a class too, but not a component)
+      if (t.getCallSignatures()[0]) {
+        const ret = sig.getReturnType();
+        const renders = /Element|ReactNode|ReactPortal|JSX/.test(checker.typeToString(ret));
+        // where the return type cannot be read, the library's own word: a @component tag, or a type named
+        // as one (lucide's icons are LucideIcon = ForwardRefExoticComponent, each tagged @component)
+        const unread = ret.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown);
+        const declares = unread && ([decl, ...(ts.isVariableDeclaration(decl) ? [decl.parent.parent] : [])].some((d) => ts.getJSDocTags(d).some((x) => x.tagName.text === "component")) || /Component|\bFC\b|Icon\b/.test(checker.typeToString(t)));
+        if (!renders && !declares) continue;
+      } else {
+        const inst = sig.getReturnType();
+        if (!inst.getProperty("render") || !inst.getProperty("props")) continue;
+      }
+      if (sig.parameters.length > 2) continue;
+      const known = model.comps[name];
+      // the same name from somewhere else: the one in use stays, else the first found
+      // (the project's own files come first: its Select, not @radix-ui's)
+      if (known && ((known.module && known.module !== spec && known.count > 0) || known.exported)) continue;
+      const c = known ?? (model.comps[name] = { count: 0, module: spec, props: {}, text: {}, seqs: {}, wrapper: {}, render: null, byParent: {} });
+      c.module ??= spec;
+      c.exported = own ? "project" : "package";
+      if (c.typed) continue;
+      const p0 = sig.parameters[0];
+      c.typed = true;
+      if (!p0) { c.required = []; c.leaf = true; continue; }
+      const pt = checker.getApparentType(checker.getTypeOfSymbolAtLocation(p0, decl));
+      const ps = checker.getPropertiesOfType(pt);
+      c.required = ps.filter((s) => !(s.flags & ts.SymbolFlags.Optional) && !["children", "key", "ref"].includes(s.name)).map((s) => s.name);
+      if (!ps.some((s) => s.name === "children" || s.name === "asChild")) c.leaf = true;
+      // a value for each required prop: a literal its type allows, or a name the code around it supplies
+      c.reqVals = {};
+      for (const r of c.required) {
+        const s = ps.find((x) => x.name === r);
+        const rt = s && checker.getTypeOfSymbolAtLocation(s, decl);
+        let v = `{${/^[a-z_$][\w$]*$/i.test(r) ? r : "undefined"}}`;
+        if (rt) {
+          const lits = (rt.isUnion() ? rt.types : [rt]).filter((x) => x.isStringLiteral());
+          if (lits.length) v = JSON.stringify(lits[0].value);
+          else if (rt.flags & ts.TypeFlags.String) v = '""';
+          else if (rt.flags & ts.TypeFlags.Number) v = "{0}";
+          else if (rt.flags & ts.TypeFlags.Boolean) v = "{false}";
+        }
+        c.reqVals[r] = v;
+        if (v.startsWith("{") && v !== "{undefined}" && !/^\{(0|false)\}$/.test(v)) model.exprUses[v] = [v.slice(1, -1)];
+      }
+    }
+  }
 }
 
 // run as a script (node src/learn.mjs <dir> <out.json>), and only then: bundled into something

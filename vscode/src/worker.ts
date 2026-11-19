@@ -2,18 +2,9 @@
 import { parentPort } from "node:worker_threads";
 import { relative } from "node:path";
 import { Expander, type Model } from "../../src/engine.js";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { edits, locate } from "./insert.js";
 import { modelFor } from "./project.js";
 
-// what shadcn/ui-style code generally looks like, shipped beside this file
-let prior: Record<string, unknown> | null = null;
-try {
-  prior = JSON.parse(readFileSync(join(__dirname, "prior.json"), "utf8"));
-} catch {
-  /* built without one */
-}
 
 export type Request =
   | { type: "learn"; root: string; src?: string }
@@ -38,6 +29,19 @@ export type Reply =
   | { type: "expanded"; id: number; items: Item[] }
   | { type: "error"; id?: number; message: string };
 
+/** The components of a reading, in order of appearance, each once. */
+function componentsIn(nodes: { name: string; kids: unknown[] }[]): string[] {
+  const out: string[] = [];
+  const walk = (ns: { name: string; kids: unknown[] }[]): void => {
+    for (const n of ns) {
+      if (/^[A-Z]/.test(n.name) && !out.includes(n.name)) out.push(n.name);
+      walk(n.kids as { name: string; kids: unknown[] }[]);
+    }
+  };
+  walk(nodes);
+  return out;
+}
+
 let x: Expander | null = null;
 let root = "";
 const port = parentPort!;
@@ -47,7 +51,7 @@ port.on("message", (m: Request) => {
     if (m.type === "learn") {
       const t = Date.now();
       root = m.root;
-      const model = modelFor(m.root, prior, m.src) as unknown as Model & { files: number; types?: { lib: boolean } };
+      const model = modelFor(m.root, m.src) as unknown as Model & { files: number; types?: { lib: boolean } };
       x = new Expander(model);
       port.postMessage({ type: "learned", model: JSON.stringify(model), files: model.files, comps: Object.keys(model.comps).length, ms: Date.now() - t, typesRead: !!model.types?.lib } satisfies Reply);
     } else if (m.type === "load") {
@@ -65,7 +69,8 @@ port.on("message", (m: Request) => {
           abbrev: where.abbrev,
           mode: where.mode,
           prob: r.prob,
-          tops: [...new Set(r.preview.map((p) => p.name))],
+          // what sets the readings apart: the components in it, in order (Card · CardHeader · CardTitle · …)
+          tops: componentsIn(r.preview),
           code: where.mode === "component" ? e.main.text : r.file,
           why: [...x!.why(r.steps), ...r.declared],
           main: e.main,

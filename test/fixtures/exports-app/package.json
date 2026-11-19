@@ -1,0 +1,1 @@
+{ "name": "exports-app", "private": true, "dependencies": { "react": "*", "zod": "*" } }

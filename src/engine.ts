@@ -32,6 +32,10 @@ export interface CompStat {
   sigs?: Record<string, Record<string, number>>;
   /** uses with text or an expression inside */
   content?: number;
+  /** where it can be used from: the project's own files, or a package's public entry point */
+  exported?: "project" | "package";
+  /** a value for each required prop, from its type, for when no use shows one */
+  reqVals?: Record<string, string>;
   /** props its type requires */
   required?: string[];
   /** its type has no children */
@@ -140,6 +144,11 @@ interface Match { comp: string; logp: number; dropped: string[]; set: { prop: st
 export class Expander {
   readonly names: string[];
   private readonly prior: Record<string, number> = {};
+  /** the family a component belongs to by name and module: SelectItem → Select */
+  private readonly familyRoot = new Map<string, string>();
+  private readonly spellCache = new Map<string, string | null>();
+  /** components by the first letters of their words and of their usual prop values */
+  private readonly byLetter = new Map<string, string[]>();
   private readonly total: Record<string, number> = {};
   private readonly hasKids: Record<string, number> = {};
   private readonly matchCache = new Map<string, Match[]>();
@@ -153,8 +162,26 @@ export class Expander {
     this.names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
     this.nameSet = new Set(this.names);
     for (const [p, e] of Object.entries(model.edges)) for (const c of Object.keys(e)) if (this.nameSet.has(p)) this.holders.set(c, [...(this.holders.get(c) ?? []), p]);
-    const sum = this.names.reduce((a, c) => a + (model.comps[c]?.count ?? 0), 0);
-    for (const c of this.names) this.prior[c] = ((model.comps[c]?.count ?? 0) + 1) / (sum + this.names.length);
+    // how common each component is: what is used counts for itself (plus one); what is only
+    // exported, never used, gets a tenth of one: offered, but at the bottom
+    const UNUSED = 0.1;
+    const weight = (c: string) => { const n = model.comps[c]?.count ?? 0; return n > 0 ? n + 1 : UNUSED; };
+    const sum = this.names.reduce((a, c) => a + weight(c), 0);
+    for (const c of this.names) this.prior[c] = weight(c) / sum;
+    for (const c of this.names) {
+      const letters = new Set(parts(c).map((p) => p[0] as string));
+      for (const ps2 of Object.values((model.comps[c] as CompStat).props ?? {}))
+        for (const raw of Object.keys(ps2.vals ?? {})) { const v = /^"([a-z])/i.exec(raw); if (v) letters.add((v[1] as string).toLowerCase()); }
+      for (const l of letters) this.byLetter.set(l, [...(this.byLetter.get(l) ?? []), c]);
+    }
+    // the families of what is exported: same module, a name that starts with another's (SelectItem, Select)
+    const byModule = new Map<string, string[]>();
+    for (const c of this.names) { const m = model.comps[c]?.module as string; byModule.set(m, [...(byModule.get(m) ?? []), c]); }
+    for (const c of this.names) {
+      let root: string | null = null;
+      for (const o of byModule.get(model.comps[c]?.module as string) ?? []) if (o !== c && c.startsWith(o) && /^[A-Z]/.test(c.slice(o.length)) && (!root || o.length > root.length)) root = o;
+      if (root) this.familyRoot.set(c, root);
+    }
     for (const [p, e] of Object.entries(model.edges)) this.total[p] = Object.values(e).reduce((a, b) => a + b, 0);
     for (const c of this.names) {
       const st = model.comps[c] as CompStat;
@@ -191,7 +218,9 @@ export class Expander {
     const hit = this.matchCache.get(chunk);
     if (hit) return hit;
     const out: Match[] = [];
-    for (const c of this.names) {
+    // only components with a word starting with this piece's first letter can match it (the first letter
+    // is always kept), or a prop value starting with it: thousands of icons need not be looked at
+    for (const c of this.byLetter.get(chunk[0] as string) ?? []) {
       const ps = parts(c);
       let best: Match | null = null;
       for (let d = 0; d < ps.length; d++) {
@@ -247,13 +276,31 @@ export class Expander {
     return kept;
   }
 
+  /** The component a piece of text spells best, whatever its context (exact names beat everything). */
+  bestSpelled(chunk: string): string | null {
+    const hit = this.spellCache.get(chunk);
+    if (hit !== undefined) return hit;
+    let best: Match | null = null;
+    for (const m of this.matches(chunk)) if (!m.set && !m.dropped.length && (!best || m.logp > best.logp)) best = m;
+    const out = best?.comp ?? null;
+    this.spellCache.set(chunk, out);
+    return out;
+  }
+
   /**
    * The family member a component is always found inside (SelectTrigger → Select,
    * TooltipTrigger → Tooltip): outside it, it fails at runtime.
    */
   required(comp: string): string | null {
     const st = this.model.comps[comp];
-    if (!st || st.count < 2) return null;
+    if (!st) return null;
+    // never used here: its family's root, by name and module (SelectItem needs a Select above it)
+    if (st.count === 0) {
+      let r = this.familyRoot.get(comp) ?? null;
+      while (r && this.familyRoot.get(r) && (this.model.comps[r]?.count ?? 0) === 0) r = this.familyRoot.get(r) ?? null;
+      return r;
+    }
+    if (st.count < 2) return null;
     let best: string | null = null;
     // inside it every time, or nearly (one odd use in fifty does not make it optional)
     for (const [a, n] of Object.entries(st.within ?? {})) if ((n === st.count || (st.count >= 5 && n / st.count >= 0.95)) && (!best || a.length < best.length)) best = a;
@@ -346,8 +393,10 @@ export class Expander {
               const dl = this.dropLogP(m.dropped, under);
               if (dl === -Infinity) return;
               const logp = m.logp + dl + place + attach;
-              // a step this unlikely never makes the best few, and leaving it out keeps the search small
-              if (logp < this.opts.minStep) return;
+              // a step this unlikely never makes the best few, and leaving it out keeps the search small;
+              // except the best spelling of this piece: a component typed out in full is offered even
+              // if never used here (ranked by its true, low probability, but not dropped)
+              if (logp < this.opts.minStep && m.comp !== this.bestSpelled(chunk)) return;
               const label: Step = { end: false, chunk, comp: m.comp, parent, wrapper, up, repeat, set: m.set, logp, f: { abbrev: m.logp + dl, dropped: m.dropped, place, attach } };
               // only the innermost few open components can still take children
               const open = [...kept, ...(wrapper ? [wrapper] : []), m.comp].slice(-this.opts.maxOpen);
@@ -942,7 +991,8 @@ function propsFor(st: CompStat, parent: string, set: { prop: string; value: stri
     if (sig.some(([k]) => k === r)) continue;
     const vals = Object.entries(st.props[r]?.vals ?? {}).filter(([v]) => keep(r, v)).sort((a, b) => Number(/^["\d]/.test(b[0])) - Number(/^["\d]/.test(a[0])) || b[1] - a[1]);
     const lit = vals.filter(([v]) => /^["\d]/.test(v));
-    const v = (lit.length ? lit[nth % lit.length] : vals[0])?.[0];
+    // never seen given: a value its type allows (a literal, or a name the code around supplies)
+    const v = (lit.length ? lit[nth % lit.length] : vals[0])?.[0] ?? st.reqVals?.[r];
     if (v !== undefined) sig.push([r, v]);
   }
   const attrs = sig

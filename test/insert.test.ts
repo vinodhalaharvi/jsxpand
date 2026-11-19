@@ -5,7 +5,6 @@ import ts from "typescript";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Expander, type Model } from "../src/engine.js";
-import { makePrior } from "../src/prior.mjs";
 import { apply, edits, locate } from "../vscode/src/insert.js";
 import { detectAlias, modelFor, projectConfig, sourceDir } from "../vscode/src/project.js";
 
@@ -31,8 +30,6 @@ describe("locate", () => {
   });
 });
 
-// the prior, built as the extension's build builds it
-const prior = makePrior(["src/model.json", "src/model-admin.json"].map((f) => JSON.parse(readFileSync(f, "utf8"))));
 
 const PROJECTS: { root: string; cases: [string, string, string][] }[] = [
   {
@@ -55,7 +52,7 @@ const PROJECTS: { root: string; cases: [string, string, string][] }[] = [
     ],
   },
   {
-    // Next.js, no src/, "@/*" → "./*", a small project that leans on the prior
+    // Next.js, no src/, "@/*" → "./*", a small project
     root: "/home/claude/real/taxonomy",
     cases: [
       ["app/(dashboard)/dashboard/page.tsx", "<DashboardShell>", "cardhdrttlcont"],
@@ -73,7 +70,7 @@ const PROJECTS: { root: string; cases: [string, string, string][] }[] = [
 for (const { root, cases } of PROJECTS)
   describe.skipIf(!existsSync(join(root, "node_modules")))(`in ${root.split("/").pop()}`, () => {
     it("puts expansions into real files that still type-check under the project's own tsconfig", () => {
-      const x = new Expander(modelFor(root, prior) as unknown as Model);
+      const x = new Expander(modelFor(root) as unknown as Model);
       const written: string[] = [];
       const empty: string[] = [];
       try {
@@ -117,18 +114,5 @@ describe.skipIf(!existsSync(join(ROOT, "node_modules")))("project settings", () 
     expect(sourceDir(ROOT)).toBe(join(ROOT, "src"));
     expect(detectAlias("/home/claude/real/taxonomy")).toEqual({ prefix: "@/", target: "/home/claude/real/taxonomy" });
     expect(sourceDir("/home/claude/real/taxonomy")).toBe("/home/claude/real/taxonomy");
-  });
-});
-
-describe("the prior", () => {
-  it("adds only to the same component, never to a same-named one from elsewhere", async () => {
-    const { withPrior } = await import("../src/prior.mjs");
-    const prior = { edges: {}, comps: { Link: { count: 5, module: "@tanstack/react-router", props: { to: { n: 5, vals: { '"/"': 5 } } } } }, exprUses: {} };
-    const project = { edges: {}, comps: { Link: { count: 2, module: "next/link", props: { href: { n: 2, vals: { '"/"': 2 } } } } }, exprUses: {} };
-    const both = (m: string) => (m === "@tanstack/react-router" ? m : null);
-    const out = withPrior(project, prior, both) as { comps: Record<string, { props: Record<string, unknown> }> };
-    expect(Object.keys(out.comps.Link.props)).toEqual(["href"]);
-    const same = withPrior({ edges: {}, comps: { Link: { ...project.comps.Link, module: "@tanstack/react-router" } }, exprUses: {} }, prior, both) as typeof out;
-    expect(Object.keys(same.comps.Link.props).sort()).toEqual(["href", "to"]);
   });
 });

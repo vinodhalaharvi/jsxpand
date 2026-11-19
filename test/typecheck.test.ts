@@ -36,7 +36,8 @@ describe("generated components type-check", () => {
       moduleResolution: ts.ModuleResolutionKind.Bundler,
       esModuleInterop: true,
       baseUrl: resolve("."),
-      paths: { "@/components/ui/*": ["page/ui/*"] },
+      // the sample project: its ui components are page/ui, its own components the corpus files
+      paths: { "@/components/ui/*": ["page/ui/*"], "@/*": ["corpus/*"] },
       types: [],
     });
     const diags = ts.getPreEmitDiagnostics(program).filter((d) => d.file && files.includes(resolve(d.file.fileName)));

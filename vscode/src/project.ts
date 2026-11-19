@@ -2,9 +2,8 @@
 // imports from its own tree ("@/*" → "./src/*").
 import ts from "typescript";
 import { existsSync } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { learn } from "../../src/learn.mjs";
-import { withPrior } from "../../src/prior.mjs";
 
 export type Alias = { prefix: string; target: string } | null;
 
@@ -45,49 +44,11 @@ export function sourceDir(root: string): string {
   return existsSync(join(root, "src")) ? join(root, "src") : root;
 }
 
-/**
- * The project's own module for one the prior names, or null when it does not have it:
- * "@/components/ui/card" → wherever its components/ui/card.tsx is, written the way its imports are;
- * an npm package → itself, when package.json lists it.
- */
-export function moduleResolver(root: string, alias: Alias): (module: string) => string | null {
-  let deps: Record<string, string> = {};
-  try {
-    const pkg = JSON.parse(ts.sys.readFile(join(root, "package.json")) ?? "{}");
-    deps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies };
-  } catch {
-    /* no package.json */
-  }
-  const cache = new Map<string, string | null>();
-  const rel = (from: string, to: string) => relative(from, to).split(sep).join("/");
-  return (module) => {
-    if (cache.has(module)) return cache.get(module)!;
-    let out: string | null = null;
-    const ui = /^@\/components\/ui\/(.+)$/.exec(module);
-    if (ui) {
-      const bases = [alias?.target, root, join(root, "src")].filter((b): b is string => !!b);
-      for (const b of bases) {
-        const hit = ["tsx", "ts", "jsx", "js"].map((x) => join(b, "components", "ui", `${ui[1]}.${x}`)).find((f) => existsSync(f));
-        if (!hit) continue;
-        const noExt = hit.replace(/\.[jt]sx?$/, "");
-        out = alias && !rel(alias.target, noExt).startsWith("..") ? alias.prefix + rel(alias.target, noExt) : "~root/" + rel(root, noExt);
-        break;
-      }
-    } else if (!/^[.~]/.test(module) && !module.startsWith("@/")) {
-      const name = module.startsWith("@") ? module.split("/").slice(0, 2).join("/") : module.split("/")[0];
-      if (deps[name]) out = module;
-    }
-    cache.set(module, out);
-    return out;
-  };
-}
-
-/** The model the extension works from: the project's own, plus the prior for what it has. */
-export function modelFor(root: string, prior: Record<string, unknown> | null, src?: string): Record<string, unknown> {
+/** The model the extension works from: learned from the workspace and what it has installed, nothing else. */
+export function modelFor(root: string, src?: string): Record<string, unknown> {
   const alias = detectAlias(root);
   const cfg = projectConfig(root);
-  const own = learn(src ?? sourceDir(root), { root, alias, compilerOptions: cfg.options, declarations: cfg.declarations });
-  return prior ? withPrior(own, prior, moduleResolver(root, alias)) : own;
+  return learn(src ?? sourceDir(root), { root, alias, compilerOptions: cfg.options, declarations: cfg.declarations });
 }
 
 /** The project's compiler options, from its tsconfig (following a Vite-style reference to the app config). */

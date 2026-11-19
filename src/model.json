@@ -3986,6 +3986,733 @@
      }
     }
    }
+  },
+  "ActivityCard": {
+   "count": 0,
+   "module": "@/ActivityCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "items"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "items": "{items}"
+   }
+  },
+  "ConfirmDelete": {
+   "count": 0,
+   "module": "@/ConfirmDelete",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "onDelete"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "onDelete": "{onDelete}"
+   }
+  },
+  "ContactForm": {
+   "count": 0,
+   "module": "@/ContactForm",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "EditProfileDialog": {
+   "count": 0,
+   "module": "@/EditProfileDialog",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "EmptyState": {
+   "count": 0,
+   "module": "@/EmptyState",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "InviteDialog": {
+   "count": 0,
+   "module": "@/InviteDialog",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "InvoicesTable": {
+   "count": 0,
+   "module": "@/InvoicesTable",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "invoices"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "invoices": "{invoices}"
+   }
+  },
+  "LoginForm": {
+   "count": 0,
+   "module": "@/LoginForm",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "NewProjectDialog": {
+   "count": 0,
+   "module": "@/NewProjectDialog",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "NewsletterForm": {
+   "count": 0,
+   "module": "@/NewsletterForm",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "NotificationsCard": {
+   "count": 0,
+   "module": "@/NotificationsCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "OrdersTable": {
+   "count": 0,
+   "module": "@/OrdersTable",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "orders"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "orders": "{orders}"
+   }
+  },
+  "PlanSelect": {
+   "count": 0,
+   "module": "@/PlanSelect",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "PricingCard": {
+   "count": 0,
+   "module": "@/PricingCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "plan"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "plan": "{plan}"
+   }
+  },
+  "ProfileCard": {
+   "count": 0,
+   "module": "@/ProfileCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "user"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "user": "{user}"
+   }
+  },
+  "ReportTabs": {
+   "count": 0,
+   "module": "@/ReportTabs",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "RevenueCard": {
+   "count": 0,
+   "module": "@/RevenueCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "RoleSelect": {
+   "count": 0,
+   "module": "@/RoleSelect",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "SearchBar": {
+   "count": 0,
+   "module": "@/SearchBar",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "onSearch"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "onSearch": "{onSearch}"
+   }
+  },
+  "SettingsTabs": {
+   "count": 0,
+   "module": "@/SettingsTabs",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "ShareDialog": {
+   "count": 0,
+   "module": "@/ShareDialog",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "url"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "url": "\"\""
+   }
+  },
+  "SignupForm": {
+   "count": 0,
+   "module": "@/SignupForm",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "StatCard": {
+   "count": 0,
+   "module": "@/StatCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "label",
+    "value"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "label": "\"\"",
+    "value": "\"\""
+   }
+  },
+  "TeamCard": {
+   "count": 0,
+   "module": "@/TeamCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "members"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "members": "{members}"
+   }
+  },
+  "Toolbar": {
+   "count": 0,
+   "module": "@/Toolbar",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [
+    "count"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "count": "{0}"
+   }
+  },
+  "UploadCard": {
+   "count": 0,
+   "module": "@/UploadCard",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "UsersTable": {
+   "count": 0,
+   "module": "@/UsersTable",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "project",
+   "typed": true,
+   "required": [],
+   "leaf": true
+  },
+  "Fragment": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "reqVals": {}
+  },
+  "StrictMode": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "reqVals": {}
+  },
+  "Suspense": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "reqVals": {}
+  },
+  "Profiler": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "id",
+    "onRender"
+   ],
+   "reqVals": {
+    "id": "\"\"",
+    "onRender": "{onRender}"
+   }
+  },
+  "Component": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "leaf": true,
+   "reqVals": {}
+  },
+  "PureComponent": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "leaf": true,
+   "reqVals": {}
+  },
+  "Activity": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "reqVals": {}
+  },
+  "ViewTransition": {
+   "count": 0,
+   "module": "react",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [],
+   "reqVals": {}
+  },
+  "FieldArray": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "render",
+    "name"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "render": "{render}",
+    "name": "{name}"
+   }
+  },
+  "FormState": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "render"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "render": "{render}"
+   }
+  },
+  "FormStateSubscribe": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "render"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "render": "{render}"
+   }
+  },
+  "Controller": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "render",
+    "name"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "render": "{render}",
+    "name": "{name}"
+   }
+  },
+  "ErrorMessage": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "name"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "name": "\"root\""
+   }
+  },
+  "FormProvider": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "watch",
+    "getValues",
+    "getErrors",
+    "getFieldState",
+    "setError",
+    "clearErrors",
+    "setValue",
+    "setValues",
+    "trigger",
+    "formState",
+    "resetField",
+    "reset",
+    "resetDefaultValues",
+    "handleSubmit",
+    "unregister",
+    "control",
+    "register",
+    "setFocus",
+    "subscribe"
+   ],
+   "reqVals": {
+    "watch": "{watch}",
+    "getValues": "{getValues}",
+    "getErrors": "{getErrors}",
+    "getFieldState": "{getFieldState}",
+    "setError": "{setError}",
+    "clearErrors": "{clearErrors}",
+    "setValue": "{setValue}",
+    "setValues": "{setValues}",
+    "trigger": "{trigger}",
+    "formState": "{formState}",
+    "resetField": "{resetField}",
+    "reset": "{reset}",
+    "resetDefaultValues": "{resetDefaultValues}",
+    "handleSubmit": "{handleSubmit}",
+    "unregister": "{unregister}",
+    "control": "{control}",
+    "register": "{register}",
+    "setFocus": "{setFocus}",
+    "subscribe": "{subscribe}"
+   }
+  },
+  "Watch": {
+   "count": 0,
+   "module": "react-hook-form",
+   "props": {},
+   "text": {},
+   "seqs": {},
+   "wrapper": {},
+   "render": null,
+   "byParent": {},
+   "exported": "package",
+   "typed": true,
+   "required": [
+    "render"
+   ],
+   "leaf": true,
+   "reqVals": {
+    "render": "{render}"
+   }
   }
  },
  "decls": {
@@ -4532,6 +5259,90 @@
   ],
   "{u.id}": [
    "u"
+  ],
+  "{items}": [
+   "items"
+  ],
+  "{invoices}": [
+   "invoices"
+  ],
+  "{orders}": [
+   "orders"
+  ],
+  "{plan}": [
+   "plan"
+  ],
+  "{user}": [
+   "user"
+  ],
+  "{onSearch}": [
+   "onSearch"
+  ],
+  "{members}": [
+   "members"
+  ],
+  "{onRender}": [
+   "onRender"
+  ],
+  "{render}": [
+   "render"
+  ],
+  "{watch}": [
+   "watch"
+  ],
+  "{getValues}": [
+   "getValues"
+  ],
+  "{getErrors}": [
+   "getErrors"
+  ],
+  "{getFieldState}": [
+   "getFieldState"
+  ],
+  "{setError}": [
+   "setError"
+  ],
+  "{clearErrors}": [
+   "clearErrors"
+  ],
+  "{setValue}": [
+   "setValue"
+  ],
+  "{setValues}": [
+   "setValues"
+  ],
+  "{trigger}": [
+   "trigger"
+  ],
+  "{formState}": [
+   "formState"
+  ],
+  "{resetField}": [
+   "resetField"
+  ],
+  "{reset}": [
+   "reset"
+  ],
+  "{resetDefaultValues}": [
+   "resetDefaultValues"
+  ],
+  "{handleSubmit}": [
+   "handleSubmit"
+  ],
+  "{unregister}": [
+   "unregister"
+  ],
+  "{control}": [
+   "control"
+  ],
+  "{register}": [
+   "register"
+  ],
+  "{setFocus}": [
+   "setFocus"
+  ],
+  "{subscribe}": [
+   "subscribe"
   ]
  },
  "fields": {

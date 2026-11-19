@@ -112,7 +112,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
       const items = await expand(doc, pos);
       const list = items.map((it, i) => {
         const c = new vscode.CompletionItem(
-          { label: it.abbrev, detail: `  ${it.tops.join(" + ")}`, description: `${Math.round(it.prob * 100)}%${it.mode === "component" ? " · new component" : ""}` },
+          { label: it.abbrev, detail: `  ${it.tops.slice(0, 5).join(" · ")}${it.tops.length > 5 ? " …" : ""}`, description: `${Math.round(it.prob * 100)}%${it.mode === "component" ? " · new component" : ""}` },
           vscode.CompletionItemKind.Snippet,
         );
         c.filterText = it.abbrev;

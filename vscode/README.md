@@ -14,20 +14,21 @@ into the ones you have, and the JSX goes at the cursor.
 
 ## How it works
 
-- **It learns from the open workspace.** It reads every `.tsx` file under `src/` (or the whole workspace when there's no `src/`): which
-  component goes inside which, the props and text each one usually gets, and how each name the
-  JSX reads is declared. With `node_modules` installed it also reads the types, for required
-  props and for components that take no children. That takes a few seconds, in the background.
-  The result is cached, and it learns again a minute after you save.
+- **It reads only your folder and what it has installed.**
+  - Your code (`.tsx` under `src/`, or the whole workspace when there's no `src/`) shows how *you*
+    build things: which component goes inside which, and the props, text and imports you use.
+  - Every component your files export, and every component your React dependencies export from
+    their public entry points (as each package declares them in its `package.json`), can be offered,
+    even if you've never used it. Never-used ones rank at the bottom and come with the props their
+    types require. Anything a library marks `@internal` is left out.
+  - Nothing else: no built-in patterns, no other repos, no network. It learns in a few seconds in the
+    background, caches the result, and learns again a minute after you save.
 - **Abbreviations are scored, not looked up.** `cardhdrttlcont` has many readings. Each one is
   scored by how a person shortens words (keeping consonants more than vowels) and by how often
   your code puts one component inside another. The best few are offered, with the share of
   the total each one takes and the reasons for it.
 - **The search is a dynamic program.** It runs on [@vhalaharvi/dyna](https://www.npmjs.com/package/@vhalaharvi/dyna),
   which finds the best readings, counts them all and adds up their probabilities in one pass.
-- **Small projects borrow general knowledge.** jsxpand ships with what shadcn/ui-style code generally
-  looks like (Card holds CardHeader and CardContent; SelectItem goes inside SelectContent). It
-  adds that, at a fraction of the weight of your own code, for the components your project has.
 - **It works offline and gives the same answer every time.** Nothing leaves your machine.
 
 ## Writing abbreviations
@@ -51,13 +52,8 @@ At the top level of a file, an abbreviation expands to a whole new component.
 
 ## Limits
 
-- It knows what your project does, plus general shadcn/ui patterns. Outside those it has little
-  to go on.
+- It knows only what your project does and what it has installed. A component you've never used
+  is offered (at the bottom) with its required props, but without a learned shape.
 - It's React (JSX/TSX) only for now.
 - A name nothing declares becomes a prop of the component you're in, typed `any` when its type
   can't be written on its own.
-
-## Credits
-
-The built-in patterns were learned from [shadcn-admin](https://github.com/satnaing/shadcn-admin)
-(MIT, © 2024 Sat Naing) and a set of sample components.
