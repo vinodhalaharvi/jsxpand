@@ -33,10 +33,22 @@ export interface CompStat {
   /** uses with text or an expression inside */
   content?: number;
 }
+/** One way a name is declared: a module const or type, a prop, or a statement in a component body. */
+export interface DeclVariant { n: number; uses: string[]; imports: Record<string, string>; pos: number }
+export interface Decl { kind: "module" | "local" | "prop"; declares: string[]; variants: Record<string, DeclVariant> }
+
 export interface Model {
   files: number;
   edges: Record<string, Record<string, number>>;
   comps: Record<string, CompStat>;
+  /** keyed by the names declared ("open,setOpen"), "prop:name", or "effect:<names used>" */
+  decls?: Record<string, Decl>;
+  /** where non-component names are imported from: useState → react */
+  imports?: Record<string, string>;
+  /** the names each learned prop expression reads: {form.handleSubmit(onSubmit)} → form, onSubmit */
+  exprUses?: Record<string, string[]>;
+  /** zod definitions seen for each form field name */
+  fields?: Record<string, Record<string, number>>;
 }
 
 // ---------- The abbreviation model ----------
@@ -330,27 +342,39 @@ export class Expander {
     const used: string[] = [];
     const lines: string[] = [];
     const preview: PreviewNode[] = [];
+    const usedNames = new Set<string>();
+    const bound = new Set<string>();
     const pad = (d: number) => "  ".repeat(d);
+    // names a render prop hands its children ({ field }): usable only inside one
+    const renderParams = new Set(Object.values(this.model.comps).flatMap((c) => (c.render ? c.render.params.replace(/[{}\s]/g, "").split(",").filter(Boolean) : [])));
+    const scope = new Set<string>();
+    const inScope = (k: string, v: string | null) => (this.model.exprUses?.[k.startsWith("...") ? k : (v ?? "")] ?? []).every((u) => !renderParams.has(u) || scope.has(u));
     const emit = (n: T, d: number, nth0 = 0, into: PreviewNode[] = preview): void => {
       if (!used.includes(n.name)) used.push(n.name);
       const st = this.model.comps[n.name] as CompStat;
       for (let r = 0; r < n.repeat; r++) {
-      const use = propsFor(st, n.parent, n.set ?? null, n.hint, nth0 + r);
+      const use = propsFor(st, n.parent, n.set ?? null, n.hint, nth0 + r, inScope);
       const attrs = use.attrs;
       const open = `<${n.name}${attrs ? " " + attrs : ""}`;
       // the text seen with those props, unless it is a one-off title: then a placeholder
       const text = use.text && (textCount(st, use.text) >= 2 || st.count <= 2 || nth0 + r > 0 || (n.hint && use.text.toLowerCase() === n.hint.toLowerCase())) ? use.text : textFor(st, n.parent, n.name, n.hint);
+      for (const [k, v] of use.pairs) for (const u of this.model.exprUses?.[k.startsWith("...") ? k : v] ?? []) usedNames.add(u);
       const pv: PreviewNode = { name: n.name, props: Object.fromEntries(use.pairs.map(([k, v]) => [k, /^"/.test(v) ? (JSON.parse(v) as string) : v])), text, kids: [] };
       into.push(pv);
         if (st.render) {
+          const params = st.render.params.replace(/[{}\s]/g, "").split(",").filter(Boolean);
+          for (const b of params) bound.add(b);
           lines.push(`${pad(d)}${open}`);
           lines.push(`${pad(d + 1)}${st.render.prop}={(${st.render.params.startsWith("{") ? st.render.params : st.render.params}) => (`);
+          const added = params.filter((b) => !scope.has(b));
+          added.forEach((b) => scope.add(b));
           if (n.kids.length === 1) emit(n.kids[0] as T, d + 2, 0, pv.kids);
           else {
             lines.push(`${pad(d + 2)}<>`);
             emitAll(n.kids, d + 3, pv.kids);
             lines.push(`${pad(d + 2)}</>`);
           }
+          added.forEach((b) => scope.delete(b));
           lines.push(`${pad(d + 1)})}`);
           lines.push(`${pad(d)}/>`);
           continue;
@@ -362,7 +386,10 @@ export class Expander {
         lines.push(`${pad(d)}${open}>`);
         const wrap = topOf(st.wrapper, 0.5);
         const inner = wrap ? d + 2 : d + 1;
-        if (wrap) lines.push(`${pad(d + 1)}${wrap}`);
+        if (wrap) {
+          lines.push(`${pad(d + 1)}${wrap}`);
+          for (const u of this.model.exprUses?.[wrap] ?? []) usedNames.add(u);
+        }
         emitAll(n.kids, inner, pv.kids);
         if (wrap) lines.push(`${pad(d + 1)}</${/^<([a-z0-9]+)/.exec(wrap)?.[1]}>`);
         lines.push(`${pad(d)}</${n.name}>`);
@@ -387,7 +414,87 @@ export class Expander {
       if (m) byModule.set(m, [...(byModule.get(m) ?? []), n]);
     }
     const imports = [...byModule].map(([m, ns]) => `import { ${ns.join(", ")} } from "${m}";`);
-    return { code: lines.join("\n"), imports, filled, preview };
+    const fields = collectFields(preview);
+    const comp = this.complete([...usedNames].filter((u) => !bound.has(u)), fields);
+    const allImports = mergeImports(byModule, comp.imports);
+    const name = `${tops[0]?.name ?? "My"}Example`;
+    const sigText = comp.props.length ? `{ ${comp.props.map((p) => p.name).join(", ")} }: { ${comp.props.map((p) => `${p.name}: ${p.type}`).join("; ")} }` : "";
+    const body = lines.map((l) => "    " + l).join("\n");
+    const file = [
+      allImports.join("\n"),
+      ...(comp.module.length ? ["", comp.module.join("\n\n")] : []),
+      "",
+      `export function ${name}(${sigText}) {`,
+      ...(comp.local.length ? [comp.local.map((t) => indent(t, "  ")).join("\n\n"), ""] : []),
+      "  return (",
+      body,
+      "  );",
+      "}",
+    ].join("\n");
+    return { code: lines.join("\n"), imports, filled, preview, file, declared: comp.why };
+  }
+
+  /**
+   * Declares every name the JSX reads, the way this codebase declares it: the
+   * hook or handler most often seen declaring it, then whatever that needs in
+   * turn (form needs formSchema, which needs z). A name nobody declares becomes
+   * a prop. Effects come along when everything they touch is already declared.
+   */
+  complete(names: string[], fields: string[]): { module: string[]; local: string[]; props: { name: string; type: string }[]; imports: Record<string, string>; why: string[] } {
+    const decls = this.model.decls ?? {};
+    const known = this.model.imports ?? {};
+    const chosen = new Map<string, { key: string; d: Decl; text: string; v: DeclVariant }>();
+    const props: { name: string; type: string }[] = [];
+    const imports: Record<string, string> = {};
+    const why: string[] = [];
+    const declaredBy = (name: string) =>
+      Object.entries(decls)
+        .filter(([k, d]) => d.kind !== "prop" && !k.startsWith("effect:") && d.declares.includes(name))
+        .sort((a, b) => total(b[1]) - total(a[1]))[0];
+    const visit = (name: string, from: string): void => {
+      if ([...chosen.values()].some((c) => c.d.declares.includes(name)) || props.some((p) => p.name === name)) return;
+      if (name in known) { imports[name] = known[name] as string; return; }
+      const hit = declaredBy(name);
+      if (hit) {
+        const [key, d] = hit;
+        // variants that differ only in their form fields are the same declaration once fitted
+        const fitted = new Map<string, { n: number; v: DeclVariant }>();
+        for (const [t, v] of Object.entries(d.variants)) {
+          const f = withFields(t, fields, this.model.fields ?? {});
+          const cur = fitted.get(f);
+          fitted.set(f, cur ? { n: cur.n + v.n, v: cur.v } : { n: v.n, v });
+        }
+        const [text, best] = [...fitted].sort((a, b) => b[1].n - a[1].n)[0] as [string, { n: number; v: DeclVariant }];
+        const v = best.v;
+        chosen.set(key, { key, d, text: d.kind === "local" ? dedent(text) : text, v });
+        why.push(`${name}: declared the way ${best.n} of ${total(d)} components do it${from ? `, for ${from}` : ""}`);
+        Object.assign(imports, v.imports);
+        for (const u of v.uses) visit(u, d.declares.join(", "));
+        return;
+      }
+      // nobody declares it: it comes in as a prop, typed as the code types it when that type stands alone
+      const p = decls["prop:" + name];
+      const t = p ? (Object.entries(p.variants).sort((a, b) => b[1].n - a[1].n)[0]?.[0] ?? "any") : "any";
+      props.push({ name, type: /\b[A-Z]/.test(t) ? "any" : t });
+      why.push(`${name}: no component declares it, so it is a prop`);
+    };
+    for (const n of names) visit(n, "");
+    // effects whose local names are all declared now
+    const have = new Set([...chosen.values()].flatMap((c) => c.d.declares));
+    for (const [key, d] of Object.entries(decls)) {
+      if (!key.startsWith("effect:")) continue;
+      const [text, v] = Object.entries(d.variants).sort((a, b) => b[1].n - a[1].n)[0] as [string, DeclVariant];
+      const locals = v.uses.filter((u) => !(u in known));
+      if (locals.length && locals.every((u) => have.has(u))) {
+        chosen.set(key, { key, d, text: dedent(text), v });
+        Object.assign(imports, v.imports);
+        why.push(`an effect that fills ${locals.join(", ")}, as in ${v.n} of ${total(d)} components`);
+      }
+    }
+    const all = [...chosen.values()];
+    const module = all.filter((c) => c.d.kind === "module").sort((a, b) => Number(/^(type|interface)/.test(b.text)) - Number(/^(type|interface)/.test(a.text))).map((c) => c.text);
+    const local = all.filter((c) => c.d.kind === "local").sort((a, b) => a.v.pos / a.v.n - b.v.pos / b.v.n).map((c) => c.text);
+    return { module, local, props, imports, why };
   }
 
   /** Plain-language reasons for each step of a reading. */
@@ -424,6 +531,10 @@ export interface PreviewNode {
 
 export interface Result {
   code: string;
+  /** the whole component: imports, declarations, hooks, and the JSX */
+  file: string;
+  /** why each declaration is there */
+  declared: string[];
   preview: PreviewNode[];
   imports: string[];
   /** children added because the component almost always has them */
@@ -441,6 +552,55 @@ export interface Expansion {
   states: number;
   alternatives: number;
   results: Result[];
+}
+
+const total = (d: Decl) => Object.values(d.variants).reduce((a, v) => a + v.n, 0);
+/** A statement copied out of a component body keeps its body's indentation on later lines: take that off. */
+function dedent(text: string): string {
+  const lines = text.split("\n");
+  const rest = lines.slice(1).filter((l) => l.trim());
+  const min = rest.length ? Math.min(...rest.map((l) => (/^ */.exec(l) as RegExpExecArray)[0].length)) : 0;
+  const cut = Math.max(0, min - 0) && rest.some((l) => /^\s*[)}\]]/.test(l)) ? Math.min(min, 2) : 0;
+  return [lines[0], ...lines.slice(1).map((l) => l.slice(Math.min(cut, (/^ */.exec(l) as RegExpExecArray)[0].length)))].join("\n");
+}
+const indent = (text: string, by: string) => text.split("\n").map((l) => (l ? by + l : l)).join("\n");
+
+/** The form fields an expansion names, in order: name="email" on each FormField. */
+function collectFields(nodes: PreviewNode[]): string[] {
+  const out: string[] = [];
+  const walk = (n: PreviewNode) => {
+    if (n.name === "FormField" && n.props.name && /^[a-zA-Z]\w*$/.test(n.props.name) && !out.includes(n.props.name)) out.push(n.props.name);
+    n.kids.forEach(walk);
+  };
+  nodes.forEach(walk);
+  return out;
+}
+
+/**
+ * Fits a learned declaration to the fields asked for: a zod schema gets one
+ * line per field (as this code defines that field, or z.string()), and
+ * defaultValues one empty value per field.
+ */
+function withFields(text: string, fields: string[], defs: Record<string, Record<string, number>>): string {
+  if (!fields.length) return text;
+  let out = text;
+  if (/z\.object\(\{/.test(out)) {
+    const lines = fields.map((f) => `  ${f}: ${Object.entries(defs[f] ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "z.string()"},`);
+    out = out.replace(/z\.object\(\{[\s\S]*?\n\}\)/, `z.object({\n${lines.join("\n")}\n})`);
+  }
+  if (/defaultValues: \{[^}]*\}/.test(out)) out = out.replace(/defaultValues: \{[^}]*\}/, `defaultValues: { ${fields.map((f) => `${f}: ""`).join(", ")} }`);
+  return out;
+}
+
+/** Component imports and declaration imports, one line per module, React first. */
+function mergeImports(components: Map<string, string[]>, other: Record<string, string>): string[] {
+  const by = new Map<string, string[]>();
+  for (const [n, m] of Object.entries(other)) by.set(m, [...(by.get(m) ?? []), n]);
+  const order = [...by.keys()].sort((a, b) => Number(b === "react") - Number(a === "react"));
+  return [
+    ...order.map((m) => `import { ${(by.get(m) as string[]).join(", ")} } from "${m}";`),
+    ...[...components].map(([m, ns]) => `import { ${ns.join(", ")} } from "${m}";`),
+  ];
 }
 
 function chain(e: Entry<Step>): Step[] {
@@ -477,7 +637,7 @@ function pickSeqs(st: CompStat | undefined, parent: string): Record<string, numb
  * value the user named replaces its prop's value; a value named further up
  * (name="password") picks a combination that agrees (type="password").
  */
-function propsFor(st: CompStat, parent: string, set: { prop: string; value: string } | null, hint: string | undefined, nth = 0): { attrs: string; text: string | null; pairs: [string, string][] } {
+function propsFor(st: CompStat, parent: string, set: { prop: string; value: string } | null, hint: string | undefined, nth = 0, keep: (k: string, v: string | null) => boolean = () => true): { attrs: string; text: string | null; pairs: [string, string][] } {
   type Sig = { p: [string, string | null][]; t: string };
   const pick = (sigs: Record<string, number> | undefined) => Object.entries(sigs ?? {}).map(([k, n]) => [JSON.parse(k) as Sig, n] as const);
   let cands = (st.byParent?.[parent] ?? 0) >= 2 ? pick(st.sigs?.[parent]) : [];
@@ -496,7 +656,8 @@ function propsFor(st: CompStat, parent: string, set: { prop: string; value: stri
   const ranked = cands.slice().sort((a, b) => score(b[0], b[1]) - score(a[0], a[1]));
   // the nth use among siblings takes the nth most usual combination: Cancel, then Save
   const best = (ranked[Math.min(nth, ranked.length - 1)] ?? ranked[0])?.[0] ?? { p: [], t: "" };
-  const sig = best.p.filter(([k]) => !(st.render && k === st.render.prop));
+  // a key only means something inside a .map(), which an expansion never has
+  const sig = best.p.filter(([k, v]) => !(st.render && k === st.render.prop) && k !== "key" && keep(k, v));
   if (set && !sig.some(([k]) => k === set.prop)) sig.push([set.prop, JSON.stringify(set.value)]);
   const attrs = sig
     .map(([k, v]) => {

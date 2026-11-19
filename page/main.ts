@@ -52,9 +52,10 @@ function run(): void {
   e.results.forEach((r, i) => {
     const card = document.createElement("section");
     card.className = "result" + (i === 0 ? " best" : "");
-    const full = (r.imports.length ? r.imports.join("\n") + "\n\n" : "") + r.code;
+    const full = r.file;
     const why = x.why(r.steps).map((w) => `<li${w.startsWith("   ") ? ' class="sub"' : ""}>${esc(w.trim())}</li>`).join("");
     const filled = [...new Set(r.filled)].map((f) => `<li>${esc(f)}</li>`).join("");
+    const declared = r.declared.map((f) => `<li>${esc(f)}</li>`).join("");
     card.innerHTML = `
       <div class="head">
         <span class="rank">${i === 0 ? "Best" : "Option " + (i + 1)}</span>
@@ -64,7 +65,7 @@ function run(): void {
       </div>
       <div class="pvslot"></div>
       <pre><code>${hl(full)}</code></pre>
-      <details${i === 0 ? " open" : ""}><summary>Why</summary><ul class="why">${why}</ul>${filled ? `<p class="fl">Filled in from your code:</p><ul class="why">${filled}</ul>` : ""}</details>`;
+      <details${i === 0 ? " open" : ""}><summary>Why</summary><ul class="why">${why}</ul>${filled ? `<p class="fl">Filled in from your code:</p><ul class="why">${filled}</ul>` : ""}${declared ? `<p class="fl">Declared, so the component compiles:</p><ul class="why">${declared}</ul>` : ""}</details>`;
     renderReal(card.querySelector(".pvslot") as HTMLElement, r.preview);
     (card.querySelector(".copy") as HTMLButtonElement).onclick = (ev) => {
       navigator.clipboard?.writeText(full).catch(() => undefined);

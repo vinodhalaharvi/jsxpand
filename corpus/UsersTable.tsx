@@ -1,7 +1,16 @@
+import { useEffect, useState } from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
-export function UsersTable({ users }: { users: User[] }) {
+type User = { id: string; name: string; email: string; role: string };
+
+export function UsersTable() {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    fetch("/api/users").then((r) => r.json()).then(setUsers);
+  }, []);
+
   return (
     <Table>
       <TableHeader>

@@ -1,10 +1,10 @@
 {
- "files": 26,
+ "files": 27,
  "edges": {
   "ROOT": {
    "Card": 9,
    "Dialog": 5,
-   "Form": 3,
+   "Form": 4,
    "Table": 3,
    "Label": 1,
    "Select": 2,
@@ -56,20 +56,20 @@
    "Button": 7
   },
   "Form": {
-   "FormField": 7,
-   "Button": 3
+   "FormField": 8,
+   "Button": 4
   },
   "FormField": {
-   "FormItem": 7
+   "FormItem": 8
   },
   "FormItem": {
    "FormLabel": 7,
-   "FormControl": 7,
-   "FormMessage": 7,
+   "FormControl": 8,
+   "FormMessage": 8,
    "FormDescription": 1
   },
   "FormControl": {
-   "Input": 6,
+   "Input": 7,
    "Textarea": 1
   },
   "CardFooter": {
@@ -505,7 +505,20 @@
   "Dialog": {
    "count": 5,
    "module": "@/components/ui/dialog",
-   "props": {},
+   "props": {
+    "open": {
+     "n": 2,
+     "vals": {
+      "{open}": 2
+     }
+    },
+    "onOpenChange": {
+     "n": 2,
+     "vals": {
+      "{setOpen}": 2
+     }
+    }
+   },
    "text": {},
    "seqs": {
     "ROOT": {
@@ -518,14 +531,28 @@
     "ROOT": 5
    },
    "propsBy": {
-    "ROOT": {}
+    "ROOT": {
+     "open": {
+      "n": 2,
+      "vals": {
+       "{open}": 2
+      }
+     },
+     "onOpenChange": {
+      "n": 2,
+      "vals": {
+       "{setOpen}": 2
+      }
+     }
+    }
    },
    "textBy": {
     "ROOT": {}
    },
    "sigs": {
     "ROOT": {
-     "{\"p\":[],\"t\":\"\"}": 5
+     "{\"p\":[[\"open\",\"{open}\"],[\"onOpenChange\",\"{setOpen}\"]],\"t\":\"\"}": 2,
+     "{\"p\":[],\"t\":\"\"}": 3
     }
    }
   },
@@ -571,7 +598,7 @@
    }
   },
   "Button": {
-   "count": 29,
+   "count": 30,
    "module": "@/components/ui/button",
    "props": {
     "variant": {
@@ -583,15 +610,17 @@
      }
     },
     "onClick": {
-     "n": 1,
+     "n": 4,
      "vals": {
-      "{onDelete}": 1
+      "{() => setOpen(false)}": 2,
+      "{onDelete}": 1,
+      "{() => onSearch(query)}": 1
      }
     },
     "type": {
-     "n": 7,
+     "n": 8,
      "vals": {
-      "\"submit\"": 7
+      "\"submit\"": 8
      }
     },
     "className": {
@@ -618,8 +647,8 @@
     "Send invite": 1,
     "Sign in": 1,
     "Create": 1,
+    "Subscribe": 2,
     "Save": 2,
-    "Subscribe": 1,
     "Search": 1,
     "Save password": 1,
     "Share": 1,
@@ -639,7 +668,7 @@
      "": 7
     },
     "Form": {
-     "": 3
+     "": 4
     },
     "CardFooter": {
      "": 9
@@ -656,7 +685,7 @@
    "byParent": {
     "DialogTrigger": 5,
     "DialogFooter": 7,
-    "Form": 3,
+    "Form": 4,
     "CardFooter": 9,
     "ROOT": 4,
     "TableCell": 1
@@ -680,8 +709,9 @@
       }
      },
      "onClick": {
-      "n": 1,
+      "n": 3,
       "vals": {
+       "{() => setOpen(false)}": 2,
        "{onDelete}": 1
       }
      },
@@ -694,9 +724,9 @@
     },
     "Form": {
      "type": {
-      "n": 3,
+      "n": 4,
       "vals": {
-       "\"submit\"": 3
+       "\"submit\"": 4
       }
      },
      "className": {
@@ -725,6 +755,12 @@
       "n": 1,
       "vals": {
        "\"submit\"": 1
+      }
+     },
+     "onClick": {
+      "n": 1,
+      "vals": {
+       "{() => onSearch(query)}": 1
       }
      },
      "variant": {
@@ -774,6 +810,7 @@
     "Form": {
      "Send": 1,
      "Sign in": 1,
+     "Subscribe": 1,
      "Create account": 1
     },
     "CardFooter": {
@@ -796,7 +833,7 @@
      "Edit": 1
     }
    },
-   "content": 29,
+   "content": 30,
    "sigs": {
     "DialogTrigger": {
      "{\"p\":[[\"variant\",\"\\\"destructive\\\"\"]],\"t\":\"Delete\"}": 1,
@@ -806,7 +843,7 @@
      "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Share\"}": 1
     },
     "DialogFooter": {
-     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"]],\"t\":\"Cancel\"}": 2,
+     "{\"p\":[[\"variant\",\"\\\"outline\\\"\"],[\"onClick\",\"{() => setOpen(false)}\"]],\"t\":\"Cancel\"}": 2,
      "{\"p\":[[\"variant\",\"\\\"destructive\\\"\"],[\"onClick\",\"{onDelete}\"]],\"t\":\"Delete\"}": 1,
      "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Save changes\"}": 1,
      "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Send invite\"}": 1,
@@ -816,6 +853,7 @@
     "Form": {
      "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Send\"}": 1,
      "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Sign in\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Subscribe\"}": 1,
      "{\"p\":[[\"type\",\"\\\"submit\\\"\"],[\"className\",\"\\\"w-full\\\"\"]],\"t\":\"Create account\"}": 1
     },
     "CardFooter": {
@@ -830,7 +868,7 @@
      "{\"p\":[],\"t\":\"Upload\"}": 1
     },
     "ROOT": {
-     "{\"p\":[[\"type\",\"\\\"submit\\\"\"]],\"t\":\"Search\"}": 1,
+     "{\"p\":[[\"type\",\"\\\"submit\\\"\"],[\"onClick\",\"{() => onSearch(query)}\"]],\"t\":\"Search\"}": 1,
      "{\"p\":[[\"variant\",\"\\\"outline\\\"\"],[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Filter\"}": 1,
      "{\"p\":[[\"variant\",\"\\\"outline\\\"\"],[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Sort\"}": 1,
      "{\"p\":[[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Export\"}": 1
@@ -838,6 +876,9 @@
     "TableCell": {
      "{\"p\":[[\"variant\",\"\\\"ghost\\\"\"],[\"size\",\"\\\"sm\\\"\"]],\"t\":\"Edit\"}": 1
     }
+   },
+   "renderSeqs": {
+    "": 3
    }
   },
   "DialogContent": {
@@ -1026,11 +1067,11 @@
    }
   },
   "Form": {
-   "count": 3,
+   "count": 4,
    "module": "@/components/ui/form",
    "props": {
     "...form": {
-     "n": 3,
+     "n": 4,
      "vals": {}
     }
    },
@@ -1038,20 +1079,21 @@
    "seqs": {
     "ROOT": {
      "FormField,FormField,Button": 2,
+     "FormField,Button": 1,
      "FormField,FormField,FormField,Button": 1
     }
    },
    "wrapper": {
-    "<form onSubmit={form.handleSubmit(onSubmit)} className=\"space-y-6\">": 3
+    "<form onSubmit={form.handleSubmit(onSubmit)} className=\"space-y-6\">": 4
    },
    "render": null,
    "byParent": {
-    "ROOT": 3
+    "ROOT": 4
    },
    "propsBy": {
     "ROOT": {
      "...form": {
-      "n": 3,
+      "n": 4,
       "vals": {}
      }
     }
@@ -1061,31 +1103,31 @@
    },
    "sigs": {
     "ROOT": {
-     "{\"p\":[[\"...form\",null]],\"t\":\"\"}": 3
+     "{\"p\":[[\"...form\",null]],\"t\":\"\"}": 4
     }
    }
   },
   "FormField": {
-   "count": 7,
+   "count": 8,
    "module": "@/components/ui/form",
    "props": {
     "control": {
-     "n": 7,
+     "n": 8,
      "vals": {
-      "{form.control}": 7
+      "{form.control}": 8
      }
     },
     "name": {
-     "n": 7,
+     "n": 8,
      "vals": {
-      "\"email\"": 3,
+      "\"email\"": 4,
       "\"message\"": 1,
       "\"password\"": 2,
       "\"name\"": 1
      }
     },
     "render": {
-     "n": 7,
+     "n": 8,
      "vals": {}
     }
    },
@@ -1097,27 +1139,27 @@
     "params": "{ field }"
    },
    "byParent": {
-    "Form": 7
+    "Form": 8
    },
    "propsBy": {
     "Form": {
      "control": {
-      "n": 7,
+      "n": 8,
       "vals": {
-       "{form.control}": 7
+       "{form.control}": 8
       }
      },
      "name": {
-      "n": 7,
+      "n": 8,
       "vals": {
-       "\"email\"": 3,
+       "\"email\"": 4,
        "\"message\"": 1,
        "\"password\"": 2,
        "\"name\"": 1
       }
      },
      "render": {
-      "n": 7,
+      "n": 8,
       "vals": {}
      }
     }
@@ -1127,31 +1169,32 @@
    },
    "sigs": {
     "Form": {
-     "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"email\\\"\"]],\"t\":\"\"}": 3,
+     "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"email\\\"\"]],\"t\":\"\"}": 4,
      "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"message\\\"\"]],\"t\":\"\"}": 1,
      "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"password\\\"\"]],\"t\":\"\"}": 2,
      "{\"p\":[[\"control\",\"{form.control}\"],[\"name\",\"\\\"name\\\"\"]],\"t\":\"\"}": 1
     }
    },
    "renderSeqs": {
-    "FormItem": 7
+    "FormItem": 8
    }
   },
   "FormItem": {
-   "count": 7,
+   "count": 8,
    "module": "@/components/ui/form",
    "props": {},
    "text": {},
    "seqs": {
     "FormField": {
      "FormLabel,FormControl,FormMessage": 6,
+     "FormControl,FormMessage": 1,
      "FormLabel,FormControl,FormDescription,FormMessage": 1
     }
    },
    "wrapper": {},
    "render": null,
    "byParent": {
-    "FormField": 7
+    "FormField": 8
    },
    "propsBy": {
     "FormField": {}
@@ -1161,7 +1204,7 @@
    },
    "sigs": {
     "FormField": {
-     "{\"p\":[],\"t\":\"\"}": 7
+     "{\"p\":[],\"t\":\"\"}": 8
     }
    }
   },
@@ -1207,20 +1250,20 @@
    }
   },
   "FormControl": {
-   "count": 7,
+   "count": 8,
    "module": "@/components/ui/form",
    "props": {},
    "text": {},
    "seqs": {
     "FormItem": {
-     "Input": 6,
+     "Input": 7,
      "Textarea": 1
     }
    },
    "wrapper": {},
    "render": null,
    "byParent": {
-    "FormItem": 7
+    "FormItem": 8
    },
    "propsBy": {
     "FormItem": {}
@@ -1230,34 +1273,34 @@
    },
    "sigs": {
     "FormItem": {
-     "{\"p\":[],\"t\":\"\"}": 7
+     "{\"p\":[],\"t\":\"\"}": 8
     }
    }
   },
   "Input": {
-   "count": 14,
+   "count": 15,
    "module": "@/components/ui/input",
    "props": {
     "type": {
-     "n": 9,
+     "n": 10,
      "vals": {
-      "\"email\"": 4,
+      "\"email\"": 5,
       "\"password\"": 3,
       "\"search\"": 1,
       "\"file\"": 1
      }
     },
     "placeholder": {
-     "n": 7,
+     "n": 8,
      "vals": {
-      "\"you@example.com\"": 4,
+      "\"you@example.com\"": 5,
       "\"Acme\"": 1,
       "\"Search...\"": 1,
       "\"Your name\"": 1
      }
     },
     "...field": {
-     "n": 6,
+     "n": 7,
      "vals": {}
     },
     "id": {
@@ -1279,6 +1322,20 @@
       "{url}": 1
      }
     },
+    "value": {
+     "n": 2,
+     "vals": {
+      "{name}": 1,
+      "{query}": 1
+     }
+    },
+    "onChange": {
+     "n": 2,
+     "vals": {
+      "{(e) => setName(e.target.value)}": 1,
+      "{(e) => setQuery(e.target.value)}": 1
+     }
+    },
     "readOnly": {
      "n": 1,
      "vals": {
@@ -1291,7 +1348,7 @@
    "wrapper": {},
    "render": null,
    "byParent": {
-    "FormControl": 6,
+    "FormControl": 7,
     "DialogContent": 4,
     "ROOT": 1,
     "CardContent": 3
@@ -1299,21 +1356,21 @@
    "propsBy": {
     "FormControl": {
      "type": {
-      "n": 5,
+      "n": 6,
       "vals": {
-       "\"email\"": 3,
+       "\"email\"": 4,
        "\"password\"": 2
       }
      },
      "placeholder": {
-      "n": 4,
+      "n": 5,
       "vals": {
-       "\"you@example.com\"": 3,
+       "\"you@example.com\"": 4,
        "\"Your name\"": 1
       }
      },
      "...field": {
-      "n": 6,
+      "n": 7,
       "vals": {}
      }
     },
@@ -1346,6 +1403,18 @@
        "\"Acme\"": 1
       }
      },
+     "value": {
+      "n": 1,
+      "vals": {
+       "{name}": 1
+      }
+     },
+     "onChange": {
+      "n": 1,
+      "vals": {
+       "{(e) => setName(e.target.value)}": 1
+      }
+     },
      "readOnly": {
       "n": 1,
       "vals": {
@@ -1364,6 +1433,18 @@
       "n": 1,
       "vals": {
        "\"Search...\"": 1
+      }
+     },
+     "value": {
+      "n": 1,
+      "vals": {
+       "{query}": 1
+      }
+     },
+     "onChange": {
+      "n": 1,
+      "vals": {
+       "{(e) => setQuery(e.target.value)}": 1
       }
      }
     },
@@ -1399,28 +1480,31 @@
    },
    "sigs": {
     "FormControl": {
-     "{\"p\":[[\"type\",\"\\\"email\\\"\"],[\"placeholder\",\"\\\"you@example.com\\\"\"],[\"...field\",null]],\"t\":\"\"}": 3,
+     "{\"p\":[[\"type\",\"\\\"email\\\"\"],[\"placeholder\",\"\\\"you@example.com\\\"\"],[\"...field\",null]],\"t\":\"\"}": 4,
      "{\"p\":[[\"type\",\"\\\"password\\\"\"],[\"...field\",null]],\"t\":\"\"}": 2,
      "{\"p\":[[\"placeholder\",\"\\\"Your name\\\"\"],[\"...field\",null]],\"t\":\"\"}": 1
     },
     "DialogContent": {
      "{\"p\":[[\"id\",\"\\\"name\\\"\"],[\"defaultValue\",\"\\\"Pedro Duarte\\\"\"]],\"t\":\"\"}": 1,
      "{\"p\":[[\"id\",\"\\\"invite-email\\\"\"],[\"type\",\"\\\"email\\\"\"],[\"placeholder\",\"\\\"you@example.com\\\"\"]],\"t\":\"\"}": 1,
-     "{\"p\":[[\"id\",\"\\\"project\\\"\"],[\"placeholder\",\"\\\"Acme\\\"\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"project\\\"\"],[\"placeholder\",\"\\\"Acme\\\"\"],[\"value\",\"{name}\"],[\"onChange\",\"{(e) => setName(e.target.value)}\"]],\"t\":\"\"}": 1,
      "{\"p\":[[\"readOnly\",\"true\"],[\"defaultValue\",\"{url}\"]],\"t\":\"\"}": 1
     },
     "ROOT": {
-     "{\"p\":[[\"type\",\"\\\"search\\\"\"],[\"placeholder\",\"\\\"Search...\\\"\"]],\"t\":\"\"}": 1
+     "{\"p\":[[\"type\",\"\\\"search\\\"\"],[\"placeholder\",\"\\\"Search...\\\"\"],[\"value\",\"{query}\"],[\"onChange\",\"{(e) => setQuery(e.target.value)}\"]],\"t\":\"\"}": 1
     },
     "CardContent": {
      "{\"p\":[[\"id\",\"\\\"username\\\"\"],[\"defaultValue\",\"\\\"@peduarte\\\"\"]],\"t\":\"\"}": 1,
      "{\"p\":[[\"id\",\"\\\"current\\\"\"],[\"type\",\"\\\"password\\\"\"]],\"t\":\"\"}": 1,
      "{\"p\":[[\"id\",\"\\\"file\\\"\"],[\"type\",\"\\\"file\\\"\"]],\"t\":\"\"}": 1
     }
+   },
+   "renderSeqs": {
+    "": 2
    }
   },
   "FormMessage": {
-   "count": 7,
+   "count": 8,
    "module": "@/components/ui/form",
    "props": {},
    "text": {},
@@ -1428,7 +1512,7 @@
    "wrapper": {},
    "render": null,
    "byParent": {
-    "FormItem": 7
+    "FormItem": 8
    },
    "propsBy": {
     "FormItem": {}
@@ -1438,7 +1522,7 @@
    },
    "sigs": {
     "FormItem": {
-     "{\"p\":[],\"t\":\"\"}": 7
+     "{\"p\":[],\"t\":\"\"}": 8
     }
    }
   },
@@ -1992,6 +2076,20 @@
       "\"email\"": 1,
       "\"push\"": 1
      }
+    },
+    "checked": {
+     "n": 2,
+     "vals": {
+      "{email}": 1,
+      "{push}": 1
+     }
+    },
+    "onCheckedChange": {
+     "n": 2,
+     "vals": {
+      "{setEmail}": 1,
+      "{setPush}": 1
+     }
     }
    },
    "text": {},
@@ -2009,6 +2107,20 @@
        "\"email\"": 1,
        "\"push\"": 1
       }
+     },
+     "checked": {
+      "n": 2,
+      "vals": {
+       "{email}": 1,
+       "{push}": 1
+      }
+     },
+     "onCheckedChange": {
+      "n": 2,
+      "vals": {
+       "{setEmail}": 1,
+       "{setPush}": 1
+      }
      }
     }
    },
@@ -2017,8 +2129,8 @@
    },
    "sigs": {
     "CardContent": {
-     "{\"p\":[[\"id\",\"\\\"email\\\"\"]],\"t\":\"\"}": 1,
-     "{\"p\":[[\"id\",\"\\\"push\\\"\"]],\"t\":\"\"}": 1
+     "{\"p\":[[\"id\",\"\\\"email\\\"\"],[\"checked\",\"{email}\"],[\"onCheckedChange\",\"{setEmail}\"]],\"t\":\"\"}": 1,
+     "{\"p\":[[\"id\",\"\\\"push\\\"\"],[\"checked\",\"{push}\"],[\"onCheckedChange\",\"{setPush}\"]],\"t\":\"\"}": 1
     }
    }
   },
@@ -2636,6 +2748,562 @@
      "{\"p\":[],\"t\":\"We never share it.\"}": 1
     }
    }
+  }
+ },
+ "decls": {
+  "prop:items": {
+   "kind": "prop",
+   "declares": [
+    "items"
+   ],
+   "variants": {
+    "Item[]": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:onDelete": {
+   "kind": "prop",
+   "declares": [
+    "onDelete"
+   ],
+   "variants": {
+    "() => void": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "open,setOpen": {
+   "kind": "local",
+   "declares": [
+    "open",
+    "setOpen"
+   ],
+   "variants": {
+    "const [open, setOpen] = useState(false);": {
+     "n": 2,
+     "uses": [
+      "useState"
+     ],
+     "imports": {
+      "useState": "react"
+     },
+     "pos": 0.8333333333333333
+    }
+   }
+  },
+  "formSchema": {
+   "kind": "module",
+   "declares": [
+    "formSchema"
+   ],
+   "variants": {
+    "const formSchema = z.object({\n  email: z.string().email(),\n  message: z.string().min(10),\n});": {
+     "n": 1,
+     "uses": [
+      "z"
+     ],
+     "imports": {
+      "z": "zod"
+     },
+     "pos": 0
+    },
+    "const formSchema = z.object({\n  email: z.string().email(),\n  password: z.string().min(8),\n});": {
+     "n": 1,
+     "uses": [
+      "z"
+     ],
+     "imports": {
+      "z": "zod"
+     },
+     "pos": 0
+    },
+    "const formSchema = z.object({\n  email: z.string().email(),\n});": {
+     "n": 1,
+     "uses": [
+      "z"
+     ],
+     "imports": {
+      "z": "zod"
+     },
+     "pos": 0
+    },
+    "const formSchema = z.object({\n  name: z.string().min(2),\n  email: z.string().email(),\n  password: z.string().min(8),\n});": {
+     "n": 1,
+     "uses": [
+      "z"
+     ],
+     "imports": {
+      "z": "zod"
+     },
+     "pos": 0
+    }
+   }
+  },
+  "form": {
+   "kind": "local",
+   "declares": [
+    "form"
+   ],
+   "variants": {
+    "const form = useForm<z.infer<typeof formSchema>>({\n    resolver: zodResolver(formSchema),\n    defaultValues: { email: \"\", message: \"\" },\n  });": {
+     "n": 1,
+     "uses": [
+      "useForm",
+      "z",
+      "formSchema",
+      "zodResolver"
+     ],
+     "imports": {
+      "useForm": "react-hook-form",
+      "z": "zod",
+      "zodResolver": "@hookform/resolvers/zod"
+     },
+     "pos": 0.3333333333333333
+    },
+    "const form = useForm<z.infer<typeof formSchema>>({\n    resolver: zodResolver(formSchema),\n    defaultValues: { email: \"\", password: \"\" },\n  });": {
+     "n": 1,
+     "uses": [
+      "useForm",
+      "z",
+      "formSchema",
+      "zodResolver"
+     ],
+     "imports": {
+      "useForm": "react-hook-form",
+      "z": "zod",
+      "zodResolver": "@hookform/resolvers/zod"
+     },
+     "pos": 0.3333333333333333
+    },
+    "const form = useForm<z.infer<typeof formSchema>>({\n    resolver: zodResolver(formSchema),\n    defaultValues: { email: \"\" },\n  });": {
+     "n": 1,
+     "uses": [
+      "useForm",
+      "z",
+      "formSchema",
+      "zodResolver"
+     ],
+     "imports": {
+      "useForm": "react-hook-form",
+      "z": "zod",
+      "zodResolver": "@hookform/resolvers/zod"
+     },
+     "pos": 0.3333333333333333
+    },
+    "const form = useForm<z.infer<typeof formSchema>>({\n    resolver: zodResolver(formSchema),\n    defaultValues: { name: \"\", email: \"\", password: \"\" },\n  });": {
+     "n": 1,
+     "uses": [
+      "useForm",
+      "z",
+      "formSchema",
+      "zodResolver"
+     ],
+     "imports": {
+      "useForm": "react-hook-form",
+      "z": "zod",
+      "zodResolver": "@hookform/resolvers/zod"
+     },
+     "pos": 0.3333333333333333
+    }
+   }
+  },
+  "onSubmit": {
+   "kind": "local",
+   "declares": [
+    "onSubmit"
+   ],
+   "variants": {
+    "function onSubmit(values: z.infer<typeof formSchema>) {\n    console.log(values);\n  }": {
+     "n": 4,
+     "uses": [
+      "z",
+      "formSchema"
+     ],
+     "imports": {
+      "z": "zod"
+     },
+     "pos": 2.6666666666666665
+    }
+   }
+  },
+  "prop:invoices": {
+   "kind": "prop",
+   "declares": [
+    "invoices"
+   ],
+   "variants": {
+    "Invoice[]": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "name,setName": {
+   "kind": "local",
+   "declares": [
+    "name",
+    "setName"
+   ],
+   "variants": {
+    "const [name, setName] = useState(\"\");": {
+     "n": 1,
+     "uses": [
+      "useState"
+     ],
+     "imports": {
+      "useState": "react"
+     },
+     "pos": 0.6666666666666666
+    }
+   }
+  },
+  "email,setEmail": {
+   "kind": "local",
+   "declares": [
+    "email",
+    "setEmail"
+   ],
+   "variants": {
+    "const [email, setEmail] = useState(true);": {
+     "n": 1,
+     "uses": [
+      "useState"
+     ],
+     "imports": {
+      "useState": "react"
+     },
+     "pos": 0.3333333333333333
+    }
+   }
+  },
+  "push,setPush": {
+   "kind": "local",
+   "declares": [
+    "push",
+    "setPush"
+   ],
+   "variants": {
+    "const [push, setPush] = useState(false);": {
+     "n": 1,
+     "uses": [
+      "useState"
+     ],
+     "imports": {
+      "useState": "react"
+     },
+     "pos": 0.6666666666666666
+    }
+   }
+  },
+  "prop:orders": {
+   "kind": "prop",
+   "declares": [
+    "orders"
+   ],
+   "variants": {
+    "Order[]": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:plan": {
+   "kind": "prop",
+   "declares": [
+    "plan"
+   ],
+   "variants": {
+    "Plan": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:user": {
+   "kind": "prop",
+   "declares": [
+    "user"
+   ],
+   "variants": {
+    "User": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:onSearch": {
+   "kind": "prop",
+   "declares": [
+    "onSearch"
+   ],
+   "variants": {
+    "(q: string) => void": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "query,setQuery": {
+   "kind": "local",
+   "declares": [
+    "query",
+    "setQuery"
+   ],
+   "variants": {
+    "const [query, setQuery] = useState(\"\");": {
+     "n": 1,
+     "uses": [
+      "useState"
+     ],
+     "imports": {
+      "useState": "react"
+     },
+     "pos": 0.5
+    }
+   }
+  },
+  "prop:url": {
+   "kind": "prop",
+   "declares": [
+    "url"
+   ],
+   "variants": {
+    "string": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:label": {
+   "kind": "prop",
+   "declares": [
+    "label"
+   ],
+   "variants": {
+    "string": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:value": {
+   "kind": "prop",
+   "declares": [
+    "value"
+   ],
+   "variants": {
+    "string": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:members": {
+   "kind": "prop",
+   "declares": [
+    "members"
+   ],
+   "variants": {
+    "Member[]": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "prop:count": {
+   "kind": "prop",
+   "declares": [
+    "count"
+   ],
+   "variants": {
+    "number": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "User": {
+   "kind": "module",
+   "declares": [
+    "User"
+   ],
+   "variants": {
+    "type User = { id: string; name: string; email: string; role: string };": {
+     "n": 1,
+     "uses": [],
+     "imports": {},
+     "pos": 0
+    }
+   }
+  },
+  "users,setUsers": {
+   "kind": "local",
+   "declares": [
+    "users",
+    "setUsers"
+   ],
+   "variants": {
+    "const [users, setUsers] = useState<User[]>([]);": {
+     "n": 1,
+     "uses": [
+      "useState",
+      "User"
+     ],
+     "imports": {
+      "useState": "react"
+     },
+     "pos": 0.3333333333333333
+    }
+   }
+  },
+  "effect:setUsers,useEffect": {
+   "kind": "local",
+   "declares": [],
+   "variants": {
+    "useEffect(() => {\n    fetch(\"/api/users\").then((r) => r.json()).then(setUsers);\n  }, []);": {
+     "n": 1,
+     "uses": [
+      "setUsers",
+      "useEffect"
+     ],
+     "imports": {
+      "useEffect": "react"
+     },
+     "pos": 0.6666666666666666
+    }
+   }
+  }
+ },
+ "imports": {
+  "useState": "react",
+  "useForm": "react-hook-form",
+  "zodResolver": "@hookform/resolvers/zod",
+  "z": "zod",
+  "useEffect": "react"
+ },
+ "exprUses": {
+  "{open}": [
+   "open"
+  ],
+  "{setOpen}": [
+   "setOpen"
+  ],
+  "{() => setOpen(false)}": [
+   "setOpen"
+  ],
+  "{onDelete}": [
+   "onDelete"
+  ],
+  "...form": [
+   "form"
+  ],
+  "<form onSubmit={form.handleSubmit(onSubmit)} className=\"space-y-6\">": [
+   "form",
+   "onSubmit"
+  ],
+  "{form.control}": [
+   "form"
+  ],
+  "...field": [
+   "field"
+  ],
+  "{i.id}": [
+   "i"
+  ],
+  "{name}": [
+   "name"
+  ],
+  "{(e) => setName(e.target.value)}": [
+   "setName"
+  ],
+  "{email}": [
+   "email"
+  ],
+  "{setEmail}": [
+   "setEmail"
+  ],
+  "{push}": [
+   "push"
+  ],
+  "{setPush}": [
+   "setPush"
+  ],
+  "{o.id}": [
+   "o"
+  ],
+  "<p className=\"text-3xl font-bold\">": [],
+  "{user.avatar}": [
+   "user"
+  ],
+  "{user.name}": [
+   "user"
+  ],
+  "{query}": [
+   "query"
+  ],
+  "{(e) => setQuery(e.target.value)}": [
+   "setQuery"
+  ],
+  "{() => onSearch(query)}": [
+   "onSearch",
+   "query"
+  ],
+  "{url}": [
+   "url"
+  ],
+  "<div className=\"text-2xl font-bold\">": [],
+  "{m.id}": [
+   "m"
+  ],
+  "{m.avatar}": [
+   "m"
+  ],
+  "{m.name}": [
+   "m"
+  ],
+  "{u.id}": [
+   "u"
+  ]
+ },
+ "fields": {
+  "email": {
+   "z.string().email()": 4
+  },
+  "message": {
+   "z.string().min(10)": 1
+  },
+  "password": {
+   "z.string().min(8)": 2
+  },
+  "name": {
+   "z.string().min(2)": 1
   }
  }
 }
