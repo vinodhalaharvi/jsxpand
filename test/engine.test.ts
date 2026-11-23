@@ -118,4 +118,13 @@ describe("a project's own model (shadcn-admin)", async () => {
     expect(top("dlgtrig")).toEqual(["Dialog", "DialogTrigger"]);
     expect(top("dlg>trig>btn")).toEqual(["Dialog", "DialogTrigger", "Button"]);
   });
+  it("uses an unused member the way its look-alikes in other families are used", () => {
+    // DialogTrigger is never used in the project; SheetTrigger, PopoverTrigger and the rest are,
+    // with asChild and a Button inside
+    expect(top("dlgtrigbtn")).toEqual(["Dialog", "DialogTrigger", "Button"]);
+    expect(top("alrtdlgtrigbtn")).toEqual(["AlertDialog", "AlertDialogTrigger", "Button"]);
+    const code = admin.expand("dlgtrigbtnhdrftr").results[0]!.code;
+    expect(code).toMatch(/<DialogTrigger asChild>\s*<Button/);
+    expect(code).toMatch(/<DialogContent[^>]*>\s*<DialogHeader/);
+  });
 });

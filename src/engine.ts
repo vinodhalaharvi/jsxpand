@@ -141,6 +141,58 @@ const END: Step = { end: true, chunk: "", comp: "", parent: "", wrapper: null, u
 
 interface Match { comp: string; logp: number; dropped: string[]; set: { prop: string; value: string } | null }
 
+/**
+ * A component the project never used learns how it is used from the ones it looks like: the
+ * same last name part in other families. DialogTrigger, never used, is used as SheetTrigger,
+ * PopoverTrigger and TooltipTrigger are: asChild, with a Button inside. Its own uses stay at
+ * none, so it still ranks below what the project does use.
+ */
+export function lookalikes(model: Model): Model {
+  const names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
+  const byModule = new Map<string, string[]>();
+  for (const c of names) { const m = model.comps[c]!.module!; byModule.set(m, [...(byModule.get(m) ?? []), c]); }
+  // the root of a family: the shortest name in the same module that this one's name starts with
+  const rootOf = (c: string) => {
+    let r: string | null = null;
+    for (const o of byModule.get(model.comps[c]!.module!) ?? []) if (o !== c && c.startsWith(o) && /^[A-Z]/.test(c.slice(o.length)) && (!r || o.length < r.length)) r = o;
+    return r;
+  };
+  const last = (c: string) => parts(c).at(-1)!;
+  const comps = { ...model.comps };
+  const edges = { ...model.edges };
+  for (const c of names) {
+    const st = model.comps[c]!;
+    const root = rootOf(c);
+    if (st.count > 0 || !root || parts(c).length < 2) continue;
+    const like = names.filter((o) => o !== c && (model.comps[o]?.count ?? 0) > 0 && last(o) === last(c) && parts(o).length >= 2 && rootOf(o) && model.comps[o]!.module !== st.module);
+    if (!like.length) continue;
+    const uses = like.reduce((a, o) => a + model.comps[o]!.count, 0);
+    // what goes inside them, and the props most of their uses give (not spreads, not styling)
+    const inside: Record<string, number> = {};
+    const seqs: Record<string, number> = {};
+    const props: Record<string, PropStat> = {};
+    const sigs: Record<string, number> = {};
+    for (const o of like) {
+      const os = model.comps[o]!;
+      for (const [k, n] of Object.entries(model.edges[o] ?? {})) inside[k] = (inside[k] ?? 0) + n;
+      for (const [p, seq] of Object.entries(os.seqs)) if (p === rootOf(o)) for (const [k, n] of Object.entries(seq)) seqs[k] = (seqs[k] ?? 0) + n;
+      for (const [sig, n] of Object.entries(os.sigs?.[rootOf(o)!] ?? {})) sigs[sig] = (sigs[sig] ?? 0) + n;
+      for (const [k, ps] of Object.entries(os.props)) {
+        if (k.startsWith("...") || k === "className") continue;
+        const t = (props[k] ??= { n: 0, vals: {} });
+        t.n += ps.n;
+        for (const [v, n] of Object.entries(ps.vals)) t.vals[v] = (t.vals[v] ?? 0) + n;
+      }
+    }
+    const kept = Object.fromEntries(Object.entries(props).filter(([, ps]) => ps.n >= uses / 2));
+    // whole uses whose props are all among those kept (asChild, not a sheet's own side="right")
+    const sigsKept = Object.fromEntries(Object.entries(sigs).filter(([sig]) => (JSON.parse(sig) as { p: [string, unknown][] }).p.every(([k]) => k in kept)));
+    comps[c] = { ...st, props: kept, propsBy: { [root]: kept }, seqs: Object.keys(seqs).length ? { [root]: seqs } : st.seqs, ...(Object.keys(sigsKept).length ? { sigs: { [root]: sigsKept } } : {}) };
+    if (Object.keys(inside).length && !model.edges[c]) edges[c] = inside;
+  }
+  return { ...model, comps, edges };
+}
+
 export class Expander {
   readonly names: string[];
   private readonly prior: Record<string, number> = {};
@@ -158,7 +210,10 @@ export class Expander {
   private readonly childCache = new Map<string, number>();
   private readonly candCache = new Map<string, Match[]>();
 
-  constructor(readonly model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), minAbbrevFrom: 5, minAbbrevPerLetter: Math.log(0.55), familyPlace: 0.05, maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
+  readonly model: Model;
+
+  constructor(model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), minAbbrevFrom: 5, minAbbrevPerLetter: Math.log(0.55), familyPlace: 0.05, maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
+    model = this.model = lookalikes(model);
     this.names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
     this.nameSet = new Set(this.names);
     for (const [p, e] of Object.entries(model.edges)) for (const c of Object.keys(e)) if (this.nameSet.has(p)) this.holders.set(c, [...(this.holders.get(c) ?? []), p]);
