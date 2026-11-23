@@ -158,7 +158,7 @@ export class Expander {
   private readonly childCache = new Map<string, number>();
   private readonly candCache = new Map<string, Match[]>();
 
-  constructor(readonly model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), minAbbrevFrom: 5, minAbbrevPerLetter: Math.log(0.55), maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
+  constructor(readonly model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), minAbbrevFrom: 5, minAbbrevPerLetter: Math.log(0.55), familyPlace: 0.05, maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
     this.names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
     this.nameSet = new Set(this.names);
     for (const [p, e] of Object.entries(model.edges)) for (const c of Object.keys(e)) if (this.nameSet.has(p)) this.holders.set(c, [...(this.holders.get(c) ?? []), p]);
@@ -209,8 +209,18 @@ export class Expander {
     if (this.model.comps[parent]?.leaf && !e) return 1e-12;
 
     const t = this.total[parent] ?? 0;
-    const { alpha } = this.opts;
-    return (this.hasKids[parent] ?? 0.01) * (e + alpha * (this.prior[child] ?? 0)) / (t + alpha);
+    const { alpha, familyPlace } = this.opts;
+    const p = (this.hasKids[parent] ?? 0.01) * (e + alpha * (this.prior[child] ?? 0)) / (t + alpha);
+    // never used in the project, and its family's root is the parent (DialogTrigger in Dialog): that
+    // is where the family's members go. (What the project does use, its own counts place.)
+    if (!e && !(this.model.comps[child]?.count ?? 0) && this.inFamily(child, parent)) return Math.max(p, (this.hasKids[parent] ?? 0.01) * familyPlace);
+    return p;
+  }
+
+  /** Whether `root` is the root its family name and module give `comp` (Dialog for DialogTrigger). */
+  private inFamily(comp: string, root: string): boolean {
+    for (let r = this.familyRoot.get(comp); r; r = this.familyRoot.get(r)) if (r === root) return true;
+    return false;
   }
 
   /** Every component a piece of text could name, with log P(text | component). */

@@ -105,3 +105,17 @@ describe("expected expansions", () => {
     expect(x.expand("").results).toEqual([]);
   });
 });
+
+describe("a project's own model (shadcn-admin)", async () => {
+  const admin = new Expander((await import("../src/model-admin.json", { with: { type: "json" } })).default as unknown as Model);
+  const top = (q: string) => admin.expand(q).results[0]!.steps.filter((s) => !s.end).map((s) => s.comp);
+  it("finds a long name from a careful abbreviation of it", () => {
+    expect(top("usractdlg")).toEqual(["UsersActionDialog"]);
+    expect(top("tskimpdlg")).toEqual(["TasksImportDialog"]);
+    expect(top("chvrghicn")).toEqual(["ChevronRightIcon"]);
+  });
+  it("reads a family member the project never used under its family's root", () => {
+    expect(top("dlgtrig")).toEqual(["Dialog", "DialogTrigger"]);
+    expect(top("dlg>trig>btn")).toEqual(["Dialog", "DialogTrigger", "Button"]);
+  });
+});
