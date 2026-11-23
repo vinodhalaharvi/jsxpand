@@ -158,7 +158,7 @@ export class Expander {
   private readonly childCache = new Map<string, number>();
   private readonly candCache = new Map<string, Match[]>();
 
-  constructor(readonly model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
+  constructor(readonly model: Model, readonly opts = { alpha: 2, wrapperCost: 0.3, dropCost: 0.15, upDecay: 0.3, rootSibling: 0.2, maxChunk: 14, minChunk: 2, minAbbrev: Math.log(2e-4), minAbbrevFrom: 5, minAbbrevPerLetter: Math.log(0.55), maxOpen: 4, minStep: Math.log(1e-6), matchSpread: Math.log(3e-2), perChunk: 4 }) {
     this.names = Object.keys(model.comps).filter((c) => model.comps[c]?.module);
     this.nameSet = new Set(this.names);
     for (const [p, e] of Object.entries(model.edges)) for (const c of Object.keys(e)) if (this.nameSet.has(p)) this.holders.set(c, [...(this.holders.get(c) ?? []), p]);
@@ -247,8 +247,12 @@ export class Expander {
         }
       }
     }
-    // the few components this piece reads best as: the rest would never win
-    const kept = out.filter((m) => m.logp >= this.opts.minAbbrev);
+    // the few components this piece reads best as: the rest would never win. Every letter typed
+    // costs a little, so the bar is lower for longer pieces: a careful abbreviation of a long
+    // name ("usractdlg", UsersActionDialog) says more, not less, than a short one
+    const { minAbbrev, minAbbrevFrom, minAbbrevPerLetter } = this.opts;
+    const floor = minAbbrev + Math.max(0, chunk.length - minAbbrevFrom) * minAbbrevPerLetter;
+    const kept = out.filter((m) => m.logp >= floor);
     this.matchCache.set(chunk, kept);
     return kept;
   }

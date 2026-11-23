@@ -1,6 +1,6 @@
 {
   "name": "jsxpand",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Type an abbreviation, get the JSX your own codebase would write: learned from your project with generating functions and dynamic programming.",
   "scripts": {
     "test": "vitest run",

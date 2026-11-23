@@ -2,7 +2,7 @@
   "name": "jsxpand",
   "displayName": "jsxpand",
   "description": "Type an abbreviation, get the JSX your own codebase would write: learned from your project, with its imports, hooks and props put in place.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "vhalaharvi",
   "author": "Vinod Halaharvi",
   "license": "MIT",
