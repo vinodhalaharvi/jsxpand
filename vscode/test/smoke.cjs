@@ -9,6 +9,9 @@ const os = require("node:os");
 const ts = require("typescript");
 
 const root = path.resolve(process.argv[2]);
+// files a failed run left behind would be learned from: clear them first
+const stale = (d) => { for (const f of fs.readdirSync(d, { withFileTypes: true })) { if (f.name === "node_modules" || f.name.startsWith(".")) continue; const p = path.join(d, f.name); if (f.isDirectory()) stale(p); else if (/\.smoke-\d+\.tsx$/.test(f.name)) fs.rmSync(p); } };
+stale(root);
 const storage = fs.mkdtempSync(path.join(os.tmpdir(), "jsxpand-"));
 
 // ---- a small vscode -------------------------------------------------------------------------
@@ -24,6 +27,10 @@ class Doc {
 }
 let provider = null;
 let hover = null;
+let inline = null;
+const commands = {};
+const settings = {};
+let applied = null;
 let triggers = [];
 const status = { text: "", show() {}, hide() {}, dispose() {} };
 const vscode = {
@@ -32,6 +39,8 @@ const vscode = {
   StatusBarAlignment: { Right: 2 },
   CompletionItemKind: { Snippet: 27 },
   CompletionTriggerKind: { Invoke: 0, TriggerCharacter: 1 },
+  InlineCompletionItem: class { constructor(insertText, range) { this.insertText = insertText; this.range = range; } },
+  WorkspaceEdit: class { constructor() { this.edits = []; } replace(uri, range, newText) { this.edits.push({ range, newText }); } },
   Hover: class { constructor(contents, range) { this.contents = contents; this.range = range; } },
   CompletionItem: class { constructor(label, kind) { this.label = label; this.kind = kind; } },
   CompletionList: class { constructor(items, inc) { this.items = items; this.isIncomplete = inc; } },
@@ -39,7 +48,9 @@ const vscode = {
   TextEdit: { replace: (range, newText) => ({ range, newText }) },
   workspace: {
     workspaceFolders: [{ uri: { fsPath: root } }],
-    getConfiguration: () => ({ get: () => undefined }),
+    getConfiguration: () => ({ get: (k) => settings[k] }),
+    openTextDocument: async (uri) => applied.doc,
+    applyEdit: async (we) => { applied.edits.push(...we.edits); return true; },
     onDidSaveTextDocument: () => ({ dispose() {} }),
     fs: {
       createDirectory: async (u) => fs.mkdirSync(u.fsPath, { recursive: true }),
@@ -51,10 +62,11 @@ const vscode = {
     createOutputChannel: () => ({ appendLine: (s) => console.log("  [out]", s), dispose() {} }),
     createStatusBarItem: () => status,
   },
-  commands: { registerCommand: () => ({ dispose() {} }) },
+  commands: { registerCommand: (name, fn) => { commands[name] = fn; return { dispose() {} }; } },
   languages: {
     registerCompletionItemProvider: (sel, p, ...t) => { provider = p; triggers = t; return { dispose() {} }; },
     registerHoverProvider: (sel, h) => { hover = h; return { dispose() {} }; },
+    registerInlineCompletionItemProvider: (sel, p) => { inline = p; return { dispose() {} }; },
   },
 };
 const load = Module._load;
@@ -121,6 +133,57 @@ Module._load = function (req, ...rest) { return req === "vscode" ? vscode : load
     fs.writeFileSync(target, out);
     written.push(target);
     console.log(`next after ${after.padEnd(14)} ${list.items.map((i) => i.label.label + " " + i.label.description).join(", ")}`);
+  }
+  // grey text on an empty line: the first one, and the imports it needs once taken
+  if (path.basename(root) === "shadcn-admin") {
+    const abs = path.join(root, "src/features/dashboard/index.tsx");
+    const orig = fs.readFileSync(abs, "utf8");
+    const pos = orig.indexOf("<Card>") + "<Card>".length;
+    const text = orig.slice(0, pos) + "\n                " + orig.slice(pos);
+    const target = abs.replace(/\.tsx$/, `.smoke-${n++}.tsx`);
+    const doc = new Doc(target, text);
+    const at = pos + "\n                ".length;
+    const got = await inline.provideInlineCompletionItems(doc, doc.positionAt(at));
+    const g = got?.[0];
+    if (!g || !g.insertText.startsWith("<CardHeader")) throw new Error("no grey CardHeader on an empty line in a Card: " + JSON.stringify(g?.insertText));
+    // take it the way VS Code does: the text over its range, then its command
+    let out = text.slice(0, doc.offsetAt(g.range.start)) + g.insertText + text.slice(doc.offsetAt(g.range.end));
+    if (g.command) {
+      const after = new Doc(target, out);
+      applied = { doc: after, edits: [] };
+      await commands[g.command.command](...g.command.arguments);
+      for (const e of applied.edits.map((e) => ({ s: after.offsetAt(e.range.start), e: after.offsetAt(e.range.end), t: e.newText })).sort((a, b) => b.s - a.s)) out = out.slice(0, e.s) + e.t + out.slice(e.e);
+    }
+    fs.writeFileSync(target, out);
+    written.push(target);
+    console.log("grey on an empty line in Card:", g.insertText.split("\n")[0], g.command ? "(+ imports)" : "");
+    // in a file that does not import it yet: the import comes with it
+    {
+      const fresh = "import { Card } from '@/components/ui/card'\n\nexport function Fresh() {\n  return (\n    <Card>\n      \n    </Card>\n  )\n}\n";
+      const t2 = abs.replace(/\.tsx$/, `.smoke-${n++}.tsx`);
+      const d2 = new Doc(t2, fresh);
+      const at2 = fresh.indexOf("<Card>") + "<Card>\n      ".length;
+      const g2 = (await inline.provideInlineCompletionItems(d2, d2.positionAt(at2)))?.[0];
+      if (!g2?.command) throw new Error("no import with the grey CardHeader in a fresh file");
+      let o2 = fresh.slice(0, d2.offsetAt(g2.range.start)) + g2.insertText + fresh.slice(d2.offsetAt(g2.range.end));
+      const after2 = new Doc(t2, o2);
+      applied = { doc: after2, edits: [] };
+      await commands[g2.command.command](...g2.command.arguments);
+      for (const e of applied.edits.map((e) => ({ s: after2.offsetAt(e.range.start), e: after2.offsetAt(e.range.end), t: e.newText })).sort((a, b) => b.s - a.s)) o2 = o2.slice(0, e.s) + e.t + o2.slice(e.e);
+      if (!/import \{[^}]*CardHeader[^}]*\} from '@\/components\/ui\/card'/.test(o2)) throw new Error("CardHeader was not imported:\n" + o2);
+      fs.writeFileSync(t2, o2);
+      written.push(t2);
+      console.log("grey in a fresh file: imported", o2.split("\n")[0]);
+    }
+    // and none when it is set to the list only, or off
+    for (const v of ["list", "off", false]) {
+      settings["suggestNext"] = v;
+      if (await inline.provideInlineCompletionItems(doc, doc.positionAt(at))) throw new Error("grey text with suggestNext " + v);
+    }
+    settings["suggestNext"] = "off";
+    const lt = new Doc(target, text.slice(0, at) + "<" + text.slice(at));
+    if (await provider.provideCompletionItems(lt, lt.positionAt(at + 1), null, { triggerKind: 1 })) throw new Error("a list with suggestNext off");
+    delete settings["suggestNext"];
   }
   // hover: what goes inside a Card
   if (path.basename(root) === "shadcn-admin") {

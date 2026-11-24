@@ -136,10 +136,18 @@ export function activate(ctx: vscode.ExtensionContext): void {
     });
   };
   const setting = (key: string) => vscode.workspace.getConfiguration("jsxpand").get<boolean>(key) ?? true;
+  // what goes here: "ghost" (the first one shown greyed on an empty line, and the list after "<"),
+  // "list" (only the list after "<"), "off". An older true/false setting still counts.
+  const nextMode = (): "ghost" | "list" | "off" => {
+    const v = vscode.workspace.getConfiguration("jsxpand").get<string | boolean>("suggestNext");
+    return v === false || v === "off" ? "off" : v === "list" ? "list" : "ghost";
+  };
 
   // an empty spot inside a component: what your project puts there, best first
+  const askNext = (doc: vscode.TextDocument, pos: vscode.Position, k: number) =>
+    ask(pendingNext, { items: [] as NextItem[], parent: "" }, (id) => ({ type: "next", id, text: doc.getText(), offset: doc.offsetAt(pos), file: doc.uri.fsPath, k }));
   const nextItems = async (doc: vscode.TextDocument, pos: vscode.Position): Promise<vscode.CompletionItem[]> => {
-    const { items, parent } = await ask(pendingNext, { items: [] as NextItem[], parent: "" }, (id) => ({ type: "next", id, text: doc.getText(), offset: doc.offsetAt(pos), file: doc.uri.fsPath, k: 6 }));
+    const { items, parent } = await askNext(doc, pos, 6);
     return items.map((it, i) => {
       const c = new vscode.CompletionItem({ label: it.comp, detail: it.type ? `  type ${it.type}` : "", description: `${Math.round(it.p * 100)}% here` }, vscode.CompletionItemKind.Snippet);
       c.sortText = `!${i}`;
@@ -160,7 +168,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
       // nothing typed yet, just "<" or an empty line on asking: what goes here
       const before = doc.lineAt(pos.line).text.slice(0, pos.character);
       const empty = /(^|[\s>}])<$/.test(before) || (context?.triggerKind === vscode.CompletionTriggerKind.Invoke && /^\s*$/.test(before));
-      if (empty) return setting("suggestNext") ? new vscode.CompletionList(await nextItems(doc, pos), true) : undefined;
+      if (empty) return nextMode() !== "off" ? new vscode.CompletionList(await nextItems(doc, pos), true) : undefined;
       const items = await expand(doc, pos);
       const list = items.map((it, i) => {
         const c = new vscode.CompletionItem(
@@ -188,6 +196,33 @@ export function activate(ctx: vscode.ExtensionContext): void {
       provider,
       ">", "+", "^", "*", ".", "<",
     ),
+  );
+
+  // on an empty line inside a component, the first of them in grey: Tab takes it, anything else
+  // goes on as usual (Enter still makes a new line)
+  ctx.subscriptions.push(
+    vscode.languages.registerInlineCompletionItemProvider(LANGS.map((language) => ({ language, scheme: "file" })), {
+      async provideInlineCompletionItems(doc, pos) {
+        if (nextMode() !== "ghost") return undefined;
+        const line = doc.lineAt(pos.line).text;
+        if (line.trim() !== "" || pos.character !== line.length) return undefined;
+        const it = (await askNext(doc, pos, 1)).items[0];
+        if (!it) return undefined;
+        const item = new vscode.InlineCompletionItem(it.main.text, new vscode.Range(doc.positionAt(it.main.start), doc.positionAt(it.main.end)));
+        // the imports and declarations it needs, once it is in
+        if (it.extra.length) item.command = { command: "jsxpand.applyExtra", title: "jsxpand", arguments: [doc.uri, it.main, it.extra] };
+        return [item];
+      },
+    }),
+    vscode.commands.registerCommand("jsxpand.applyExtra", async (uri: vscode.Uri, main: NextItem["main"], extra: NextItem["extra"]) => {
+      const doc = await vscode.workspace.openTextDocument(uri);
+      // the inserted text moved everything after it
+      const shift = main.text.length - (main.end - main.start);
+      const at = (o: number) => doc.positionAt(o >= main.end ? o + shift : o);
+      const edit = new vscode.WorkspaceEdit();
+      for (const e of extra) edit.replace(uri, new vscode.Range(at(e.start), at(e.end)), e.text);
+      await vscode.workspace.applyEdit(edit);
+    }),
   );
 
   // hover a component's tag: what goes inside it in your project, two levels down

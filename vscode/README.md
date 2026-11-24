@@ -46,9 +46,9 @@ At the top level of a file, an abbreviation expands to a whole new component.
 
 ## What goes here
 
-Type `<` on an empty line inside a component (or ask for suggestions there) and nothing else: the
-list shows what your project puts at that spot, best first, with how often and the short form to
-type for each.
+On an empty line inside a component, the most likely one shows in grey: Tab takes it, anything
+else carries on as usual. Type `<` there for the whole list: what your project puts at that spot,
+best first, with how often and the short form to type for each.
 
 ```
 <FormItem>
@@ -68,7 +68,7 @@ Hover a component's tag to see what goes inside it in your project, two levels d
 
 - `jsxpand.results`: how many readings to offer (default 3).
 - `jsxpand.sourceFolder`: the folder to learn from, if it isn't `src/` or the whole workspace.
-- `jsxpand.suggestNext`: the list at an empty spot (default on).
+- `jsxpand.suggestNext`: what goes here. `ghost` (default): on an empty line inside a component, the most likely one in grey, Tab to take it, plus the list after `<`. `list`: only the list after `<`. `off`: neither.
 - `jsxpand.hoverMap`: what goes inside a component, on hovering its tag (default on).
 - **jsxpand: Learn this workspace again**: run it after big changes (or click the status bar).
 
