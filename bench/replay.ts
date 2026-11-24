@@ -12,7 +12,7 @@ const ROOT = "ROOT";
 const x = new Expander(modelJson as unknown as Model);
 const names = new Set(x.names);
 
-interface Use { file: string; name: string; parent: string; prev: string; grand: string }
+interface Use { file: string; name: string; parent: string; prev: string; grand: string; depth: number }
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => {
@@ -57,7 +57,7 @@ for (const file of files(process.argv[2]!)) {
   };
   const record = (_n: ts.Node, name: string, chain: string[], prev: string) => {
     if (!names.has(name)) return;
-    uses.push({ file, name, parent: chain.at(-1) ?? ROOT, grand: chain.at(-2) ?? ROOT, prev });
+    uses.push({ file, name, parent: chain.at(-1) ?? ROOT, grand: chain.at(-2) ?? ROOT, prev, depth: chain.length });
   };
   walk(sf, []);
 }
@@ -65,17 +65,18 @@ for (const file of files(process.argv[2]!)) {
 // counts, and the same counts for each file alone (to leave it out)
 type C = Map<string, number>;
 const inc = (m: C, k: string, d = 1) => m.set(k, (m.get(k) ?? 0) + d);
-const all = { one: new Map() as C, par: new Map() as C, parT: new Map() as C, sib: new Map() as C, sibT: new Map() as C, gp: new Map() as C, gpT: new Map() as C };
+const all = { one: new Map() as C, par: new Map() as C, parT: new Map() as C, sib: new Map() as C, sibT: new Map() as C, gp: new Map() as C, gpT: new Map() as C, gps: new Map() as C, gpsT: new Map() as C };
 const per = new Map<string, typeof all>();
 const add = (t: typeof all, u: Use, d: number) => {
   inc(t.one, u.name, d);
   inc(t.par, u.parent + ">" + u.name, d); inc(t.parT, u.parent, d);
   inc(t.sib, u.parent + "|" + u.prev + ">" + u.name, d); inc(t.sibT, u.parent + "|" + u.prev, d);
   inc(t.gp, u.grand + "/" + u.parent + ">" + u.name, d); inc(t.gpT, u.grand + "/" + u.parent, d);
+  inc(t.gps, u.grand + "/" + u.parent + "|" + u.prev + ">" + u.name, d); inc(t.gpsT, u.grand + "/" + u.parent + "|" + u.prev, d);
 };
 for (const u of uses) {
   add(all, u, 1);
-  if (!per.has(u.file)) per.set(u.file, { one: new Map(), par: new Map(), parT: new Map(), sib: new Map(), sibT: new Map(), gp: new Map(), gpT: new Map() });
+  if (!per.has(u.file)) per.set(u.file, { one: new Map(), par: new Map(), parT: new Map(), sib: new Map(), sibT: new Map(), gp: new Map(), gpT: new Map(), gps: new Map(), gpsT: new Map() });
   add(per.get(u.file)!, u, 1);
 }
 const N = uses.length;
@@ -155,4 +156,34 @@ if (process.argv.includes("--why")) {
   }
   console.log("\nno match:", [...miss].sort((a, b) => b[1] - a[1]).slice(0, 15));
   console.log("\nnot first:", [...wrong].sort((a, b) => b[1] - a[1]).slice(0, 15));
+}
+
+// With nothing typed: where does the component written there rank among what goes at that spot?
+// Inside X; inside X after Y; inside X under G after Y (the way the extension asks).
+if (process.argv.includes("--next")) {
+  const comps = [...new Set(uses.map((u) => u.name))];
+  const B = 1;
+  const rankNext = (u: Use, how: "parent" | "parent+previous" | "+grandparent") => {
+    const f = per.get(u.file)!;
+    const p1 = (c: string) => g("par", u.parent + ">" + c, f) / Math.max(1, g("parT", u.parent, f));
+    const p2 = (c: string) => (g("sib", u.parent + "|" + u.prev + ">" + c, f) + B * p1(c)) / (g("sibT", u.parent + "|" + u.prev, f) + B);
+    const p3 = (c: string) => (g("gps", u.grand + "/" + u.parent + "|" + u.prev + ">" + c, f) + B * p2(c)) / (g("gpsT", u.grand + "/" + u.parent + "|" + u.prev, f) + B);
+    const p = how === "parent" ? p1 : how === "parent+previous" ? p2 : p3;
+    const truth = p(u.name);
+    if (truth <= 0) return Infinity;
+    let r = 1;
+    for (const c of comps) if (c !== u.name && p(c) > truth) r++;
+    return r;
+  };
+  console.log("\nnothing typed: the component written there, ranked first / in the top 3 (file left out)");
+  const buckets: [string, (u: Use) => boolean][] = [["all", () => true], ["depth 1 (top level)", (u) => u.depth === 0], ["depth 2", (u) => u.depth === 1], ["depth 3", (u) => u.depth === 2], ["depth 4+", (u) => u.depth >= 3], ["first child", (u) => u.prev === "^"], ["after a sibling", (u) => u.prev !== "^"]];
+  for (const [label, keep] of buckets) {
+    const us = uses.filter(keep);
+    const row = (["parent", "parent+previous", "+grandparent"] as const).map((how) => {
+      let a = 0, b3 = 0;
+      for (const u of us) { const r = rankNext(u, how); if (r === 1) a++; if (r <= 3) b3++; }
+      return `${((100 * a) / us.length).toFixed(0).padStart(3)}% / ${((100 * b3) / us.length).toFixed(0).padStart(3)}%`;
+    });
+    console.log(`  ${label.padEnd(20)} n=${String(us.length).padEnd(5)} inside X ${row[0]}   after Y ${row[1]}   under G ${row[2]}`);
+  }
 }
