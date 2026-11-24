@@ -16,11 +16,14 @@ class Position { constructor(line, character) { this.line = line; this.character
 class Range { constructor(a, b) { this.start = a; this.end = b; } }
 class Doc {
   constructor(file, text) { this.uri = { fsPath: file }; this.text = text; this.languageId = "typescriptreact"; }
-  getText() { return this.text; }
+  getText(r) { return r ? this.text.slice(this.offsetAt(r.start), this.offsetAt(r.end)) : this.text; }
   offsetAt(p) { const ls = this.text.split("\n"); let o = 0; for (let i = 0; i < p.line; i++) o += ls[i].length + 1; return o + p.character; }
+  lineAt(l) { return { text: this.text.split("\n")[l] }; }
+  getWordRangeAtPosition(p, re) { const line = this.text.split("\n")[p.line]; const g = new RegExp(re.source, "g"); let m; while ((m = g.exec(line))) if (m.index <= p.character && p.character <= m.index + m[0].length) return new Range(new Position(p.line, m.index), new Position(p.line, m.index + m[0].length)); return undefined; }
   positionAt(o) { const before = this.text.slice(0, o).split("\n"); return new Position(before.length - 1, before[before.length - 1].length); }
 }
 let provider = null;
+let hover = null;
 let triggers = [];
 const status = { text: "", show() {}, hide() {}, dispose() {} };
 const vscode = {
@@ -28,9 +31,11 @@ const vscode = {
   Uri: { joinPath: (u, ...p) => ({ fsPath: path.join(u.fsPath, ...p) }) },
   StatusBarAlignment: { Right: 2 },
   CompletionItemKind: { Snippet: 27 },
+  CompletionTriggerKind: { Invoke: 0, TriggerCharacter: 1 },
+  Hover: class { constructor(contents, range) { this.contents = contents; this.range = range; } },
   CompletionItem: class { constructor(label, kind) { this.label = label; this.kind = kind; } },
   CompletionList: class { constructor(items, inc) { this.items = items; this.isIncomplete = inc; } },
-  MarkdownString: class { constructor() { this.value = ""; } appendCodeblock(c, l) { this.value += "```" + l + "\n" + c + "\n```"; } appendMarkdown(m) { this.value += m; } },
+  MarkdownString: class { constructor(v = "") { this.value = v; } appendCodeblock(c, l) { this.value += "```" + l + "\n" + c + "\n```"; } appendMarkdown(m) { this.value += m; } },
   TextEdit: { replace: (range, newText) => ({ range, newText }) },
   workspace: {
     workspaceFolders: [{ uri: { fsPath: root } }],
@@ -47,7 +52,10 @@ const vscode = {
     createStatusBarItem: () => status,
   },
   commands: { registerCommand: () => ({ dispose() {} }) },
-  languages: { registerCompletionItemProvider: (sel, p, ...t) => { provider = p; triggers = t; return { dispose() {} }; } },
+  languages: {
+    registerCompletionItemProvider: (sel, p, ...t) => { provider = p; triggers = t; return { dispose() {} }; },
+    registerHoverProvider: (sel, h) => { hover = h; return { dispose() {} }; },
+  },
 };
 const load = Module._load;
 Module._load = function (req, ...rest) { return req === "vscode" ? vscode : load.call(this, req, ...rest); };
@@ -87,6 +95,42 @@ Module._load = function (req, ...rest) { return req === "vscode" ? vscode : load
   ];
   const written = [];
   let n = 0;
+  // what goes here: "<" typed on a new line after a marker, the first item expected, and the file
+  // after taking it must type-check
+  const nextCases = path.basename(root) === "shadcn-admin" ? [
+    ["src/features/dashboard/index.tsx", "<Card>", "CardHeader"],
+    ["src/features/dashboard/index.tsx", "</CardHeader>", "CardContent"],
+  ] : [];
+  for (const [file, after, want] of nextCases) {
+    const abs = path.join(root, file);
+    const orig = fs.readFileSync(abs, "utf8");
+    const pos = orig.indexOf(after) + after.length;
+    const text = orig.slice(0, pos) + "\n                <" + orig.slice(pos);
+    const target = abs.replace(/\.tsx$/, `.smoke-${n++}.tsx`);
+    const doc = new Doc(target, text);
+    const at = pos + "\n                <".length;
+    const list = await provider.provideCompletionItems(doc, doc.positionAt(at), null, { triggerKind: 1, triggerCharacter: "<" });
+    const it = list?.items?.[0];
+    if (!it || it.label.label !== want) throw new Error(`after ${after}: wanted ${want} first, got ${it ? it.label.label : "nothing"}`);
+    const edits = [{ range: it.range, newText: it.insertText }, ...it.additionalTextEdits]
+      .map((e, i) => ({ s: doc.offsetAt(e.range.start), e: doc.offsetAt(e.range.end), t: e.newText, i }))
+      .sort((a, b) => b.s - a.s || b.i - a.i);
+    let out = text;
+    for (const e of edits) out = out.slice(0, e.s) + e.t + out.slice(e.e);
+    if (out.includes("<<")) throw new Error("the typed < was left in");
+    fs.writeFileSync(target, out);
+    written.push(target);
+    console.log(`next after ${after.padEnd(14)} ${list.items.map((i) => i.label.label + " " + i.label.description).join(", ")}`);
+  }
+  // hover: what goes inside a Card
+  if (path.basename(root) === "shadcn-admin") {
+    const abs = path.join(root, "src/features/dashboard/index.tsx");
+    const text = fs.readFileSync(abs, "utf8");
+    const doc = new Doc(abs, text);
+    const h = await hover.provideHover(doc, doc.positionAt(text.indexOf("<Card>") + 2));
+    if (!h || !/CardHeader|Header/.test(h.contents.value)) throw new Error("no map on hovering Card: " + JSON.stringify(h));
+    console.log("hover Card:\n" + h.contents.value.split("\n").filter((l) => !l.startsWith("```")).map((l) => "  " + l).join("\n"));
+  }
   for (const [file, after, abbrev] of cases) {
     const abs = path.join(root, file);
     const orig = fs.existsSync(abs) ? fs.readFileSync(abs, "utf8") : "";

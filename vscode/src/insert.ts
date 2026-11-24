@@ -57,6 +57,75 @@ export function locate(text: string, offset: number, fileName = "x.tsx"): Where 
   return null;
 }
 
+/** An empty spot for a child component: where, and the components around it. */
+export type Slot = {
+  /** where the inserted code starts (a "<" typed there is replaced) and ends */
+  start: number;
+  end: number;
+  /** the nearest component around it, the one around that ("ROOT" at the top), and the component just before it inside the parent (null: none yet) */
+  parent: string;
+  grand: string;
+  prev: string | null;
+  /** the elements around it, outermost first, as locate gives them */
+  inside: string[];
+};
+
+const isComp = (n: string) => /^[A-Z]/.test(n);
+const tagName = (n: ts.Node, sf: ts.SourceFile): string | null =>
+  ts.isJsxElement(n) ? n.openingElement.tagName.getText(sf) : ts.isJsxSelfClosingElement(n) ? n.tagName.getText(sf) : null;
+
+/**
+ * An empty spot between a component's tags, just after a typed "<" or on an empty line, or null
+ * anywhere else (an abbreviation already typed, the top level of a return, a string, an attribute).
+ */
+export function slot(text: string, offset: number, fileName = "x.tsx"): Slot | null {
+  const lineStart = text.lastIndexOf("\n", offset - 1) + 1;
+  const before = text.slice(lineStart, offset);
+  let start: number;
+  if (/(^|[\s>}])<$/.test(before)) start = offset - 1;
+  else if (/^\s*$/.test(before)) start = offset;
+  else return null;
+  // read the file without the "<", so the tags around parse as they will be
+  const clean = text.slice(0, start) + text.slice(offset);
+  const sf = ts.createSourceFile(fileName, clean, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  // the innermost element whose children hold the spot
+  let host: ts.JsxElement | null = null;
+  const dive = (n: ts.Node): void => {
+    n.forEachChild((c) => {
+      if (c.getStart(sf) <= start && start <= c.end) {
+        if (ts.isJsxElement(c) && c.openingElement.end <= start && start <= c.closingElement.getStart(sf)) host = c;
+        dive(c);
+      }
+    });
+  };
+  dive(sf);
+  const found = host as ts.JsxElement | null;
+  if (!found) return null;
+  const inside: string[] = [];
+  const comps: ts.JsxElement[] = [];
+  for (let n: ts.Node | undefined = found; n; n = n.parent)
+    if (ts.isJsxElement(n)) {
+      inside.unshift(n.openingElement.tagName.getText(sf));
+      if (isComp(n.openingElement.tagName.getText(sf))) comps.push(n);
+    }
+  // nothing to go on at the top level of a page: only inside a component
+  const parentEl = comps[0];
+  if (!parentEl) return null;
+  // the component just before the spot among the parent's children, looking through lowercase
+  // elements as the learner does
+  let prev: string | null = null;
+  const walk = (n: ts.Node): void => {
+    const t = tagName(n, sf);
+    if (t && isComp(t)) {
+      if (n.end <= start) prev = t;
+      return;
+    }
+    n.forEachChild(walk);
+  };
+  parentEl.children.forEach(walk);
+  return { start, end: offset, parent: parentEl.openingElement.tagName.getText(sf), grand: comps[1]?.openingElement.tagName.getText(sf) ?? "ROOT", prev, inside };
+}
+
 /** Names declared by a binding: const { a, b: [c] } = ... → a, c */
 function bindingNames(n: ts.BindingName): string[] {
   if (ts.isIdentifier(n)) return [n.text];

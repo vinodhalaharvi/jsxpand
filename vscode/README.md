@@ -44,10 +44,32 @@ into the ones you have, and the JSX goes at the cursor.
 
 At the top level of a file, an abbreviation expands to a whole new component.
 
+## What goes here
+
+Type `<` on an empty line inside a component (or ask for suggestions there) and nothing else: the
+list shows what your project puts at that spot, best first, with how often and the short form to
+type for each.
+
+```
+<FormItem>
+  <FormLabel />
+  <|                FormControl       63% here   type co
+                    FormDescription   20% here   type de
+                    SelectDropdown     8% here   type sd
+```
+
+It goes by the component you're in, the one just before the cursor, and the one two levels up
+(a header row's cells are `TableHead`s, a body row's are `TableCell`s). Pick one to insert it
+the way its short form would expand; type letters instead and it's an ordinary abbreviation again.
+
+Hover a component's tag to see what goes inside it in your project, two levels down.
+
 ## Settings
 
 - `jsxpand.results`: how many readings to offer (default 3).
 - `jsxpand.sourceFolder`: the folder to learn from, if it isn't `src/` or the whole workspace.
+- `jsxpand.suggestNext`: the list at an empty spot (default on).
+- `jsxpand.hoverMap`: what goes inside a component, on hovering its tag (default on).
 - **jsxpand: Learn this workspace again**: run it after big changes (or click the status bar).
 
 ## Limits

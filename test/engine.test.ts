@@ -128,3 +128,38 @@ describe("a project's own model (shadcn-admin)", async () => {
     expect(code).toMatch(/<DialogContent[^>]*>\s*<DialogHeader/);
   });
 });
+
+describe("what goes at an empty spot (shadcn-admin)", async () => {
+  const admin = new Expander((await import("../src/model-admin.json", { with: { type: "json" } })).default as unknown as Model);
+  const first = (parent: string, prev: string | null, grand: string | null = null) => admin.next(parent, prev, grand)[0]?.comp;
+  it("puts first what the project writes there, given the component before it", () => {
+    expect(first("Card", null)).toBe("CardHeader");
+    expect(first("Card", "CardHeader")).toBe("CardContent");
+    expect(first("FormItem", null)).toBe("FormLabel");
+    expect(first("FormItem", "FormLabel")).toBe("FormControl");
+    expect(first("FormItem", "FormControl")).toBe("FormMessage");
+    expect(first("DropdownMenu", null)).toBe("DropdownMenuTrigger");
+    expect(first("DropdownMenu", "DropdownMenuTrigger")).toBe("DropdownMenuContent");
+  });
+  it("looks two levels up where that decides it: a header row's cells are heads", () => {
+    expect(first("TableRow", null, "TableHeader")).toBe("TableHead");
+    expect(first("TableRow", null, "TableBody")).toBe("TableCell");
+  });
+  it("gives the short form that reads as each one there", () => {
+    const n = admin.next("DialogContent", null);
+    for (const s of n) if (s.type) expect(admin.candidates(s.type, "DialogContent")[0]?.comp).toBe(s.comp);
+    expect(admin.next("Card", null)[0]?.type).toBe("he");
+  });
+  it("sums to at most one, best first", () => {
+    const n = admin.next("FormItem", "FormLabel", null, 50, 0);
+    const total = n.reduce((a, s) => a + s.p, 0);
+    expect(total).toBeLessThanOrEqual(1.0001);
+    for (let i = 1; i < n.length; i++) expect(n[i]!.p).toBeLessThanOrEqual(n[i - 1]!.p);
+  });
+  it("maps what goes inside a component two levels down", () => {
+    const m = admin.map("Card");
+    expect(m.kids.map((k) => k.comp)).toContain("CardHeader");
+    expect(m.kids.find((k) => k.comp === "CardHeader")!.kids.map((k) => k.comp)).toContain("CardTitle");
+    for (const k of m.kids) for (const kk of k.kids) expect(kk.kids).toEqual([]);
+  });
+});
