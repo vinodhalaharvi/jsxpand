@@ -825,6 +825,96 @@ export class Expander {
   }
 
   /** Plain-language reasons for each step of a reading. */
+  /**
+   * What the project puts inside `parent` (itself inside `grand`) after `prev` (null: as the first
+   * child), best first. It reads the children each component was written with, in order: inside X
+   * under G after Y, falling back to inside X after Y, then to inside X. Nothing here changes how
+   * an abbreviation is read; it only answers what goes at an empty spot.
+   */
+  next(parent: string, prev: string | null, grand: string | null = null, k = 6, min = 0.02): Next[] {
+    const known = new Set(this.names);
+    // inside X, anywhere: what the expander already uses
+    const p1 = new Map<string, number>();
+    let t1 = 0;
+    for (const c of this.names) {
+      const p = this.childP(parent, c);
+      if (p > 0) (p1.set(c, p), (t1 += p));
+    }
+    for (const [c, p] of p1) p1.set(c, p / t1);
+    // inside X after Y, and inside X under G after Y, from the order children were written in
+    const after = (only: string | null) => {
+      const n = new Map<string, number>();
+      let t = 0;
+      for (const [g, seqs] of Object.entries(this.model.comps[parent]?.seqs ?? {})) {
+        if (only !== null && g !== only) continue;
+        for (const [seq, w] of Object.entries(seqs)) {
+          const kids = seq ? seq.split(",") : [];
+          for (let i = 0; i < kids.length; i++) {
+            if ((i ? kids[i - 1]! : null) !== prev || !known.has(kids[i]!)) continue;
+            n.set(kids[i]!, (n.get(kids[i]!) ?? 0) + w);
+            t += w;
+          }
+        }
+      }
+      return { n, t };
+    };
+    const blend = (lower: Map<string, number>, { n, t }: { n: Map<string, number>; t: number }) => {
+      const out = new Map<string, number>();
+      for (const c of new Set([...lower.keys(), ...n.keys()])) out.set(c, ((n.get(c) ?? 0) + NEXT_BACKOFF * (lower.get(c) ?? 0)) / (t + NEXT_BACKOFF));
+      return out;
+    };
+    let p = blend(p1, after(null));
+    if (grand !== null) p = blend(p, after(grand));
+    return [...p]
+      .filter(([, q]) => q >= min)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, k)
+      .map(([comp, q]) => ({ comp, p: q, type: this.shortestFor(comp, parent) }));
+  }
+
+  /** The shortest thing to type inside `parent` that reads first as `comp`: "he" for DialogHeader in DialogContent. */
+  shortestFor(comp: string, parent: string): string | null {
+    const ps = parts(comp), pp = parts(parent);
+    let k = 0;
+    while (k < ps.length - 1 && pp[k] === ps[k]) k++;
+    const cons = (w: string, n: number) => {
+      let s = w[0]!;
+      for (const ch of w.slice(1)) if (!"aeiou".includes(ch) && s.length < n) s += ch;
+      return s;
+    };
+    const tries = new Set<string>();
+    for (const from of [k, 0]) {
+      const w = ps.slice(from);
+      for (let n = 1; n <= 4; n++) (tries.add(w.map((q) => q.slice(0, n)).join("")), tries.add(w.map((q) => cons(q, n)).join("")));
+    }
+    // shortest first; at the same length, the form that leaves out the family (he, not ch, in a Card)
+    for (const t of [...tries].filter((t) => t.length >= 2).sort((a, b) => a.length - b.length))
+      if (this.candidates(t, parent)[0]?.comp === comp) return t;
+    return null;
+  }
+
+  /** What goes inside `comp`, `depth` levels down, the strongest `k` at each level: a small map for a hover. */
+  map(comp: string, depth = 2, k = 4, min = 0.05): MapNode {
+    const kids = depth ? this.inside(comp, k, min) : [];
+    return { comp, p: 1, type: null, kids: kids.map((n) => ({ ...this.map(n.comp, depth - 1, Math.max(2, k - 1), min), p: n.p, type: n.type })) };
+  }
+
+  /** What goes inside `comp` anywhere in it, with how often. */
+  private inside(comp: string, k: number, min: number): Next[] {
+    let t = 0;
+    const ps: [string, number][] = [];
+    for (const c of this.names) {
+      const p = this.childP(comp, c);
+      if (p > 0) (ps.push([c, p]), (t += p));
+    }
+    return ps
+      .map(([c, p]) => [c, p / t] as [string, number])
+      .filter(([, p]) => p >= min)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, k)
+      .map(([c, p]) => ({ comp: c, p, type: this.shortestFor(c, comp) }));
+  }
+
   why(steps: Step[]): string[] {
     const out: string[] = [];
     for (const s of steps) {
@@ -861,6 +951,21 @@ export interface PreviewNode {
   text: string;
   kids: PreviewNode[];
 }
+
+/** A component that goes at a spot, how likely, and the shortest thing to type for it there. */
+export interface Next {
+  comp: string;
+  p: number;
+  type: string | null;
+}
+
+/** A component and what goes inside it. */
+export interface MapNode extends Next {
+  kids: MapNode[];
+}
+
+/** How far "inside X after Y" leans on "inside X" when it has few examples. */
+const NEXT_BACKOFF = 1;
 
 export interface Result {
   code: string;

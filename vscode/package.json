@@ -2,7 +2,7 @@
   "name": "jsxpand",
   "displayName": "jsxpand",
   "description": "Type an abbreviation, get the JSX your own codebase would write: learned from your project, with its imports, hooks and props put in place.",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "publisher": "vhalaharvi",
   "author": "Vinod Halaharvi",
   "license": "MIT",
@@ -63,6 +63,16 @@
           "type": "string",
           "default": "",
           "description": "Folder to learn from, relative to the workspace. Empty: src/ when there is one, else the whole workspace."
+        },
+        "jsxpand.suggestNext": {
+          "type": "boolean",
+          "default": true,
+          "description": "On an empty spot inside a component (after typing < or on asking for suggestions), list what your project puts there, best first, with the short form to type for each."
+        },
+        "jsxpand.hoverMap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Hovering a component's tag shows what goes inside it in your project, two levels down."
         }
       }
     }
