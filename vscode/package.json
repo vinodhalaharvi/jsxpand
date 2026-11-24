@@ -2,7 +2,7 @@
   "name": "jsxpand",
   "displayName": "jsxpand",
   "description": "Type an abbreviation, get the JSX your own codebase would write: learned from your project, with its imports, hooks and props put in place.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "vhalaharvi",
   "author": "Vinod Halaharvi",
   "license": "MIT",
@@ -65,9 +65,19 @@
           "description": "Folder to learn from, relative to the workspace. Empty: src/ when there is one, else the whole workspace."
         },
         "jsxpand.suggestNext": {
-          "type": "boolean",
-          "default": true,
-          "description": "On an empty spot inside a component (after typing < or on asking for suggestions), list what your project puts there, best first, with the short form to type for each."
+          "type": "string",
+          "enum": [
+            "ghost",
+            "list",
+            "off"
+          ],
+          "default": "ghost",
+          "enumDescriptions": [
+            "On an empty line inside a component, show the most likely component in grey (Tab takes it), and the full list after typing <.",
+            "Only the list, after typing <.",
+            "Neither."
+          ],
+          "description": "What goes here: suggestions at an empty spot inside a component, from what your project puts there."
         },
         "jsxpand.hoverMap": {
           "type": "boolean",
