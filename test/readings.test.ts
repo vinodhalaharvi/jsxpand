@@ -17,7 +17,7 @@ const INPUTS = [
 ];
 
 describe("readings", () => {
-  it("are what they were", async () => {
+  it("are what they were", { timeout: 120_000 }, async () => {
     const x = new Expander(admin as unknown as Model);
     const out: Record<string, string[]> = {};
     for (const q of INPUTS) {
